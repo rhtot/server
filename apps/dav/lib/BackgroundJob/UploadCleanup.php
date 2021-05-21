@@ -28,6 +28,7 @@ declare(strict_types=1);
 namespace OCA\DAV\BackgroundJob;
 
 use OC\User\NoUserException;
+use OCA\DAV\Service\CustomPropertiesService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\IJobList;
@@ -45,10 +46,14 @@ class UploadCleanup extends TimedJob {
 	/** @var IJobList */
 	private $jobList;
 
-	public function __construct(ITimeFactory $time, IRootFolder $rootFolder, IJobList $jobList) {
+	/** @var CustomPropertiesService */
+	private $customPropertiesService;
+
+	public function __construct(ITimeFactory $time, IRootFolder $rootFolder, IJobList $jobList, CustomPropertiesService $customPropertiesService) {
 		parent::__construct($time);
 		$this->rootFolder = $rootFolder;
 		$this->jobList = $jobList;
+		$this->customPropertiesService = $customPropertiesService;
 
 		// Run once a day
 		$this->setInterval(60 * 60 * 24);
