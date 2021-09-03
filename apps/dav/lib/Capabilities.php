@@ -28,9 +28,7 @@ class Capabilities implements ICapability {
 	public function getCapabilities() {
 		return [
 			'dav' => [
-				'chunking' => '1.0',
-				// disabled because of https://github.com/nextcloud/desktop/issues/4243
-				// 'bulkupload' => '1.0',
+				'chunking' => '2.0'
 			]
 		];
 	}
