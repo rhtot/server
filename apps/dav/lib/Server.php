@@ -63,8 +63,10 @@ use OCA\DAV\Events\SabrePluginAuthInitEvent;
 use OCA\DAV\Files\BrowserErrorPagePlugin;
 use OCA\DAV\Files\LazySearchBackend;
 use OCA\DAV\Provisioning\Apple\AppleProvisioningPlugin;
+use OCA\DAV\Service\CustomPropertiesService;
 use OCA\DAV\SystemTag\SystemTagPlugin;
 use OCA\DAV\Upload\ChunkingPlugin;
+use OCA\DAV\Upload\ChunkingV2Plugin;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\IRequest;
 use OCP\SabrePluginEvent;
@@ -203,6 +205,7 @@ class Server {
 		));
 
 		$this->server->addPlugin(new CopyEtagHeaderPlugin());
+		$this->server->addPlugin(new ChunkingV2Plugin());
 		$this->server->addPlugin(new ChunkingPlugin());
 
 		// allow setup of additional plugins
@@ -249,6 +252,7 @@ class Server {
 						new CustomPropertiesBackend(
 							$this->server->tree,
 							\OC::$server->getDatabaseConnection(),
+							\OC::$server->get(CustomPropertiesService::class),
 							\OC::$server->getUserSession()->getUser()
 						)
 					)
