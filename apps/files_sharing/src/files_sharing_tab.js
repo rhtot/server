@@ -29,6 +29,7 @@ import SharingTab from './views/SharingTab'
 import ShareSearch from './services/ShareSearch'
 import ExternalLinkActions from './services/ExternalLinkActions'
 import TabSections from './services/TabSections'
+import store from './store'
 
 // Init Sharing Tab Service
 if (!window.OCA.Sharing) {
@@ -60,6 +61,7 @@ window.addEventListener('DOMContentLoaded', function() {
 				TabInstance = new View({
 					// Better integration with vue parent component
 					parent: context,
+					store,
 				})
 				// Only mount after we have all the info we need
 				await TabInstance.update(fileInfo)
@@ -67,6 +69,7 @@ window.addEventListener('DOMContentLoaded', function() {
 			},
 			update(fileInfo) {
 				TabInstance.update(fileInfo)
+				store.commit('addCurrentTab', 'default')
 			},
 			destroy() {
 				TabInstance.$destroy()
