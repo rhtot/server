@@ -617,8 +617,11 @@ class ObjectStoreStorage extends \OC\Files\Storage\Common implements IChunkedFil
 		}
 		$cacheEntry = $this->getCache()->get($targetPath);
 		$urn = $this->getURN($cacheEntry->getId());
+		\OC::$server->getLogger()->info('Debug MKCOL initiate multipart upload ' . $urn);
 		$uploadId = $this->objectStore->initiateMultipartUpload($urn);
+		\OC::$server->getLogger()->info('Debug MKCOL finished multipart upload init ' . $urn);
 		$this->uploadCache->set($this->getUploadCacheKey($urn, $uploadId, 'uploadId'), $uploadId);
+		\OC::$server->getLogger()->info('Debug MKCOL written multipart upload id to cache ' . $uploadId);
 		return $uploadId;
 	}
 
