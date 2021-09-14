@@ -148,6 +148,7 @@ class PublicKeyTokenProvider implements IProvider {
 	}
 
 	public function renewSessionToken(string $oldSessionId, string $sessionId): IToken {
+		\OC::$server->getLogger()->info(self::class . '::renewSessionToken before');
 		$this->cache->clear();
 
 		$token = $this->getToken($oldSessionId);
@@ -174,6 +175,7 @@ class PublicKeyTokenProvider implements IProvider {
 
 		$this->mapper->delete($token);
 
+		\OC::$server->getLogger()->info(self::class . '::renewSessionToken after');
 		return $newToken;
 	}
 

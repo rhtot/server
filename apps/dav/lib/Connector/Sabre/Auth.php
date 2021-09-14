@@ -119,6 +119,7 @@ class Auth extends AbstractBasic {
 	 * @throws PasswordLoginForbidden
 	 */
 	protected function validateUserPass($username, $password) {
+		\OC::$server->getLogger()->info(self::class . '::validateUserPass before');
 		if ($this->userSession->isLoggedIn() &&
 			$this->isDavAuthenticated($this->userSession->getUser()->getUID())
 		) {

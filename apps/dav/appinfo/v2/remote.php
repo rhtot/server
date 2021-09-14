@@ -30,6 +30,7 @@ ignore_user_abort(true);
 // Turn off output buffering to prevent memory problems
 \OC_Util::obEnd();
 
+\OC::$server->getLogger()->info('apps/dav/appinfo/v2/remote.php before dav server');
 $request = \OC::$server->getRequest();
 $server = new \OCA\DAV\Server($request, $baseuri);
 $server->exec();
