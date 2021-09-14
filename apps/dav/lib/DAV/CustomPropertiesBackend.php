@@ -169,7 +169,12 @@ class CustomPropertiesBackend implements BackendInterface {
 	 */
 	public function propPatch($path, PropPatch $propPatch) {
 		$propPatch->handleRemaining(function ($changedProps) use ($path) {
-			return $this->updateProperties($path, $changedProps);
+			try {
+				return $this->updateProperties($path, $changedProps);
+			} catch (\Throwable $e) {
+				\OC::$server->getLogger()->logException($e);
+				$this->connection->rollBack();
+			}
 		});
 	}
 
@@ -281,6 +286,7 @@ class CustomPropertiesBackend implements BackendInterface {
 	 * @return bool
 	 */
 	private function updateProperties(string $path, array $properties) {
+		\OC::$server->getLogger()->info('Debug custom properties update ' . $path . ': ' . json_encode($properties, JSON_THROW_ON_ERROR));
 		$deleteStatement = 'DELETE FROM `*PREFIX*properties`' .
 			' WHERE `userid` = ? AND `propertypath` = ? AND `propertyname` = ?';
 
@@ -294,6 +300,8 @@ class CustomPropertiesBackend implements BackendInterface {
 		$existing = $this->getUserProperties($path, []);
 		$this->connection->beginTransaction();
 		foreach ($properties as $propertyName => $propertyValue) {
+			\OC::$server->getLogger()->info('Debug custom properties update in transaction ' . $propertyName . ' to ' . $propertyValue);
+
 			// If it was null, we need to delete the property
 			if (is_null($propertyValue)) {
 				if (array_key_exists($propertyName, $existing)) {

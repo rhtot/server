@@ -83,6 +83,7 @@ class ChunkingV2Plugin extends ServerPlugin {
 	}
 
 	public function beforeMkcol(RequestInterface $request, ResponseInterface $response): bool {
+		\OC::$server->getLogger()->info('Debug MKCOL Handling chunked upload v2');
 		$this->uploadFolder = $this->server->tree->getNodeForPath($request->getPath());
 		try {
 			$this->checkPrerequisites();
@@ -97,14 +98,22 @@ class ChunkingV2Plugin extends ServerPlugin {
 		}
 
 		$targetFile = $this->getTargetFile($targetPath, true);
-
+		\OC::$server->getLogger()->info('Debug MKCOL prequisites finished');
 		$uploadId = $storage->beginChunkedFile($targetFile->getInternalPath());
 
+		\OC::$server->getLogger()->info('Debug MKCOL beginChunkedFile finished');
 		// DAV properties on the UploadFolder are used in order to properly cleanup stale chunked file writes and to persist the target path
 		$this->server->updateProperties($request->getPath(), [
 			self::OBJECT_UPLOAD_CHUNKTOKEN => $uploadId,
 			self::OBJECT_UPLOAD_TARGET => $targetPath,
 		]);
+		\OC::$server->getLogger()->info('Debug MKCOL written upload dir properties for ' . $request->getPath() . ': ' .
+			json_encode([
+				self::OBJECT_UPLOAD_CHUNKTOKEN => $uploadId,
+				self::OBJECT_UPLOAD_TARGET => $targetPath,
+			], JSON_THROW_ON_ERROR)
+		);
+
 
 		$response->setStatus(201);
 		return true;
