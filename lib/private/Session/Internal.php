@@ -121,6 +121,8 @@ class Internal extends Session {
 	 * @return void
 	 */
 	public function regenerateId(bool $deleteOldSession = true, bool $updateToken = false) {
+		\OC::$server->getLogger()->info(self::class . '::startSession before session_regenerate_id');
+
 		$oldId = null;
 
 		if ($updateToken) {
@@ -138,6 +140,7 @@ class Internal extends Session {
 		} catch (\Error $e) {
 			$this->trapError($e->getCode(), $e->getMessage());
 		}
+		\OC::$server->getLogger()->info(self::class . '::startSession after session_regenerate_id');
 
 		if ($updateToken) {
 			// Get the new id to update the token
@@ -214,6 +217,8 @@ class Internal extends Session {
 	}
 
 	private function startSession(bool $silence = false) {
+		\OC::$server->getLogger()->info(self::class . '::startSession before session_start');
 		$this->invoke('session_start', [['cookie_samesite' => 'Lax']], $silence);
+		\OC::$server->getLogger()->info(self::class . '::startSession after session_start');
 	}
 }
