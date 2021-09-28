@@ -81,8 +81,8 @@ $maxUploadFilesize = min($upload_max_filesize, $post_max_size);
 									<span class="icon icon-download"></span>
 									<?php p($l->t('Download'))?>
 								</a>
-							</div>							
-						<?php } ?>									
+							</div>
+						<?php } ?>
 				<?php endif; ?>
 				<?php if ($_['previewURL'] === $_['downloadURL'] && !$_['hideDownload']): ?>
 					<div class="directDownload">
