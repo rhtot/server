@@ -429,6 +429,7 @@ class ShareAPIController extends OCSController {
 	 * @param string $sendPasswordByTalk
 	 * @param string $expireDate
 	 * @param string $label
+	 * @param string $hideDownload
 	 *
 	 * @return DataResponse
 	 * @throws NotFoundException
@@ -448,7 +449,8 @@ class ShareAPIController extends OCSController {
 		string $password = '',
 		string $sendPasswordByTalk = null,
 		string $expireDate = '',
-		string $label = ''
+		string $label = '',
+		string $hideDownload = null
 	): DataResponse {
 		$share = $this->shareManager->newShare();
 
@@ -477,7 +479,7 @@ class ShareAPIController extends OCSController {
 		}
 
 		if ($permissions < 0 || $permissions > Constants::PERMISSION_ALL) {
-			throw new OCSNotFoundException($this->l->t('invalid permissions'));
+			throw new OCSNotFoundException($this->l->t('Invalid permissions'));
 		}
 
 		// Shares always require read permissions
@@ -505,6 +507,15 @@ class ShareAPIController extends OCSController {
 			}
 			$share->setSharedWith($shareWith);
 			$share->setPermissions($permissions);
+
+			if ($expireDate !== '') {
+				try {
+					$expireDate = $this->parseDate($expireDate);
+					$share->setExpirationDate($expireDate);
+				} catch (\Exception $e) {
+					throw new OCSNotFoundException($this->l->t('Invalid date, date format must be YYYY-MM-DD'));
+				}
+			}
 		} elseif ($shareType === IShare::TYPE_GROUP) {
 			if (!$this->shareManager->allowGroupSharing()) {
 				throw new OCSNotFoundException($this->l->t('Group sharing is disabled by the administrator'));
@@ -516,6 +527,15 @@ class ShareAPIController extends OCSController {
 			}
 			$share->setSharedWith($shareWith);
 			$share->setPermissions($permissions);
+
+			if ($expireDate !== '') {
+				try {
+					$expireDate = $this->parseDate($expireDate);
+					$share->setExpirationDate($expireDate);
+				} catch (\Exception $e) {
+					throw new OCSNotFoundException($this->l->t('Invalid date, date format must be YYYY-MM-DD'));
+				}
+			}
 		} elseif ($shareType === IShare::TYPE_LINK
 			|| $shareType === IShare::TYPE_EMAIL) {
 
@@ -543,6 +563,13 @@ class ShareAPIController extends OCSController {
 				$permissions = Constants::PERMISSION_READ;
 			}
 
+			// Update hide download state
+			if ($hideDownload === 'true') {
+				$share->setHideDownload(true);
+			} elseif ($hideDownload === 'false') {
+				$share->setHideDownload(false);
+			}
+
 			// TODO: It might make sense to have a dedicated setting to allow/deny converting link shares into federated ones
 			if (($permissions & Constants::PERMISSION_READ) && $this->shareManager->outgoingServer2ServerSharesAllowed()) {
 				$permissions |= Constants::PERMISSION_SHARE;
@@ -556,13 +583,13 @@ class ShareAPIController extends OCSController {
 			}
 
 			// Only share by mail have a recipient
-			if ($shareType === IShare::TYPE_EMAIL) {
+			if (is_string($shareWith) && $shareType === IShare::TYPE_EMAIL) {
 				$share->setSharedWith($shareWith);
-			} else {
-				// Only link share have a label
-				if (!empty($label)) {
-					$share->setLabel($label);
-				}
+			}
+
+			// If we have a label, use it
+			if (!empty($label)) {
+				$share->setLabel($label);
 			}
 
 			if ($sendPasswordByTalk === 'true') {
@@ -587,15 +614,39 @@ class ShareAPIController extends OCSController {
 				throw new OCSForbiddenException($this->l->t('Sharing %1$s failed because the back end does not allow shares from type %2$s', [$path->getPath(), $shareType]));
 			}
 
+			if ($shareWith === null) {
+				throw new OCSNotFoundException($this->l->t('Please specify a valid federated user id'));
+			}
+
 			$share->setSharedWith($shareWith);
 			$share->setPermissions($permissions);
+			if ($expireDate !== '') {
+				try {
+					$expireDate = $this->parseDate($expireDate);
+					$share->setExpirationDate($expireDate);
+				} catch (\Exception $e) {
+					throw new OCSNotFoundException($this->l->t('Invalid date, date format must be YYYY-MM-DD'));
+				}
+			}
 		} elseif ($shareType === IShare::TYPE_REMOTE_GROUP) {
 			if (!$this->shareManager->outgoingServer2ServerGroupSharesAllowed()) {
 				throw new OCSForbiddenException($this->l->t('Sharing %1$s failed because the back end does not allow shares from type %2$s', [$path->getPath(), $shareType]));
 			}
 
+			if ($shareWith === null) {
+				throw new OCSNotFoundException($this->l->t('Please specify a valid federated group id'));
+			}
+
 			$share->setSharedWith($shareWith);
 			$share->setPermissions($permissions);
+			if ($expireDate !== '') {
+				try {
+					$expireDate = $this->parseDate($expireDate);
+					$share->setExpirationDate($expireDate);
+				} catch (\Exception $e) {
+					throw new OCSNotFoundException($this->l->t('Invalid date, date format must be YYYY-MM-DD'));
+				}
+			}
 		} elseif ($shareType === IShare::TYPE_CIRCLE) {
 			if (!\OC::$server->getAppManager()->isEnabledForUser('circles') || !class_exists('\OCA\Circles\ShareByCircleProvider')) {
 				throw new OCSNotFoundException($this->l->t('You cannot share to a Circle if the app is not enabled'));
@@ -1127,8 +1178,7 @@ class ShareAPIController extends OCSController {
 				$share->setPassword($password);
 			}
 
-			// only link shares have labels
-			if ($share->getShareType() === IShare::TYPE_LINK && $label !== null) {
+			if ($label !== null) {
 				if (strlen($label) > 255) {
 					throw new OCSBadRequestException("Maxmimum label length is 255");
 				}
@@ -1457,10 +1507,6 @@ class ShareAPIController extends OCSController {
 			throw new \Exception('Invalid date. Format must be YYYY-MM-DD');
 		}
 
-		if ($date === false) {
-			throw new \Exception('Invalid date. Format must be YYYY-MM-DD');
-		}
-
 		$date->setTime(0, 0, 0);
 
 		return $date;
@@ -1595,7 +1641,6 @@ class ShareAPIController extends OCSController {
 			IShare::TYPE_USER,
 			IShare::TYPE_GROUP,
 			IShare::TYPE_LINK,
-			IShare::TYPE_EMAIL,
 			IShare::TYPE_EMAIL,
 			IShare::TYPE_CIRCLE,
 			IShare::TYPE_ROOM,
