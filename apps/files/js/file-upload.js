@@ -44,6 +44,7 @@ OC.FileUpload = function(uploader, data) {
 OC.FileUpload.CONFLICT_MODE_DETECT = 0;
 OC.FileUpload.CONFLICT_MODE_OVERWRITE = 1;
 OC.FileUpload.CONFLICT_MODE_AUTORENAME = 2;
+OC.conflictsData = null;
 
 // IE11 polyfill
 // TODO: nuke out of orbit as well as this legacy code
@@ -345,7 +346,7 @@ OC.FileUpload.prototype = {
 	 */
 	getResponse: function() {
 		var response = this.data.response();
-		if (response.errorThrown) {
+		if (response.errorThrown || response.textStatus === 'error') {
 			// attempt parsing Sabre exception is available
 			var xml = response.jqXHR.responseXML;
 			if (xml && xml.documentElement.localName === 'error' && xml.documentElement.namespaceURI === 'DAV:') {
@@ -790,14 +791,16 @@ OC.Uploader.prototype = _.extend({
 			}
 			return true;
 		});
+		OC.conflictsData = conflicts;
 		if (conflicts.length) {
 			// wait for template loading
-			OC.dialogs.fileexists(null, null, null, this).done(function() {
-				_.each(conflicts, function(conflictData) {
-					OC.dialogs.fileexists(conflictData[1], conflictData[0], conflictData[1].getFile(), this);
+			OC.dialogs.fileexistsConflictPreDlg(null, null, null, this).done(function () {
+				_.each(conflicts, function (conflictData) {
+					OC.dialogs.fileexistsConflictPreDlg(conflictData[1], conflictData[0], conflictData[1].getFile(), this);
 				});
 			});
 		}
+
 
 		// upload non-conflicting files
 		// note: when reaching the server they might still meet conflicts
@@ -864,6 +867,50 @@ OC.Uploader.prototype = _.extend({
 		return ($tr.attr('data-mounttype') === 'shared-root' && $tr.attr('data-mime') !== 'httpd/unix-directory');
 	},
 
+	/** Custom Pre File conflict dialog*/
+
+	/**
+	 * Bypass to nexcloud default confluct box
+	 */
+	moreDetails:function() {
+		var conflicts = OC.conflictsData;
+		var self = this;
+		this.cancelUploads();
+		if (conflicts.length) {
+			// wait for template loading
+			OC.dialogs.fileexists(null, null, null, this).done(function () {
+				_.each(conflicts, function (conflictData) {
+					OC.dialogs.fileexists(conflictData[1], conflictData[0], conflictData[1].getFile(), this);
+				});
+			});
+		}
+	},
+
+	/**
+	 * callback for the conflicts dialog
+	 * calls onSkip, onReplace or onAutorename for each conflict
+	 * @param keepOriginal - boolean value. If true will keep original file
+	 * @param keepOriginal - boolean value. If true will repleace file
+	 */
+	onContinueConflictPreDlg:function(keepOriginal, keepReplacement) {
+		var self = this;
+		//iterate over all conflicts
+		jQuery.each(OC.conflictsData, function (i, conflict) {
+			var conflictData = conflict[1]
+			if (keepOriginal && keepReplacement) {
+				// when both selected -> autorename
+				self.onAutorename(conflictData);
+			} else if (keepReplacement) {
+				// when only replacement selected -> overwrite
+				self.onReplace(conflictData);
+			} else {
+				// when only original selected -> skip
+				// when none selected -> skip
+				self.onSkip(conflictData);
+			}
+		});
+	},
+
 	/**
 	 * Initialize the upload object
 	 *
@@ -902,7 +949,7 @@ OC.Uploader.prototype = _.extend({
 				dropZone: options.dropZone, // restrict dropZone to content div
 				autoUpload: false,
 				sequentialUploads: false,
-				limitConcurrentUploads: 10,
+				limitConcurrentUploads: 4,
 				/**
 				 * on first add of every selection
 				 * - check all files of originalFiles array with files in dir
