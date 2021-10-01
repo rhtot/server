@@ -274,7 +274,7 @@ class Application extends App {
 		$eventDispatcher->addServiceListener(UserDeletedEvent::class, UserDeletedStoreCleanupListener::class);
 		$eventDispatcher->addServiceListener(UserDeletedEvent::class, UserDeletedTokenCleanupListener::class);
 		$eventDispatcher->addServiceListener(UserDeletedEvent::class, UserDeletedWebAuthnCleanupListener::class);
-        $eventDispatcher->addServiceListener(BeforeUserDeletedEvent::class, UserDeletedFilesCleanupListener::class);
-        $eventDispatcher->addServiceListener(UserDeletedEvent::class, UserDeletedFilesCleanupListener::class);
+		$eventDispatcher->addServiceListener(BeforeUserDeletedEvent::class, UserDeletedFilesCleanupListener::class);
+		$eventDispatcher->addServiceListener(UserDeletedEvent::class, UserDeletedFilesCleanupListener::class);
 	}
 }
