@@ -183,12 +183,12 @@
 					@click.prevent="onDelete">
 					{{ t('files_sharing', 'Unshare') }}
 				</ActionButton>
-				<ActionButton v-if="!isEmailShareType && canReshare"
+				<!-- <ActionButton v-if="!isEmailShareType && canReshare"
 					class="new-share-link"
 					icon="icon-add"
 					@click.prevent.stop="onNewLinkShare">
 					{{ t('files_sharing', 'Add another link') }}
-				</ActionButton>
+				</ActionButton> -->
 			</template>
 
 			<!-- Create new share -->

@@ -24,6 +24,9 @@
 	<ul class="sharing-permissions">
 		<!-- for email and link share -->
 		<template v-if="isExteranlShare">
+			<label class="permissions">
+				{{ t('files_sharing', 'Permissions') }}
+			</label>
 			<!-- folder -->
 			<template v-if="isFolder && fileHasCreatePermission && config.isPublicUploadEnabled">
 				<ActionRadio :checked="sharePermissions === publicUploadRValue"
@@ -48,6 +51,9 @@
 					@change="addPermissions">
 					{{ t('files_sharing', 'File drop (upload only)') }}
 				</ActionRadio>
+				<div class="filedrop-message">
+					{{ t('files_sharing', 'With File drop, only uploading is allowed. Only you can see files and folders that have been uploaded.') }}
+				</div>
 			</template>
 
 			<!-- file -->
@@ -69,67 +75,71 @@
 				</ActionRadio>
 			</template>
 
-			<label>
-				{{ t('files_sharing', 'Advanced settings') }}
-			</label>
-			<ActionCheckbox :checked.sync="share.hideDownload"
-				:disabled="saving"
-				@change="addHideDownload">
-				{{ t('files_sharing', 'Hide download') }}
-			</ActionCheckbox>
+			<div>
+				<label class="advanced-settings" @click="showAdLink = !showAdLink">
+					{{ t('files_sharing', 'Advanced') }}
+				</label>
+				<div v-show="showAdLink">
+					<ActionCheckbox :checked.sync="share.hideDownload"
+						:disabled="saving"
+						@change="addHideDownload">
+						{{ t('files_sharing', 'Hide download') }}
+					</ActionCheckbox>
 
-			<!-- password -->
-			<ActionCheckbox :checked.sync="isPasswordProtected"
-				:disabled="config.enforcePasswordForPublicLink || saving"
-				class="share-link-password-checkbox">
-				{{ config.enforcePasswordForPublicLink
-					? t('files_sharing', 'Password protection (enforced)')
-					: t('files_sharing', 'Password protect') }}
-			</ActionCheckbox>
-			<ActionInput v-if="isPasswordProtected"
-				ref="password"
-				icon=""
-				:disabled="saving"
-				:required="config.enforcePasswordForPublicLink"
-				:value="hasUnsavedPassword ? share.newPassword : '***************'"
-				autocomplete="new-password"
-				:type="hasUnsavedPassword ? 'text': 'password'">
-				{{ t('files_sharing', 'Enter a password') }}
-			</ActionInput>
-			<div v-if="isPasswordProtected"
-				class="password-message">
-				{{ t('files_sharing', 'The password is not send with the email to maintain confidentiality.') }}
+					<!-- password -->
+					<ActionCheckbox :checked.sync="isPasswordProtected"
+						:disabled="config.enforcePasswordForPublicLink || saving"
+						class="share-link-password-checkbox">
+						{{ config.enforcePasswordForPublicLink
+							? t('files_sharing', 'Password protection (enforced)')
+							: t('files_sharing', 'Password protect') }}
+					</ActionCheckbox>
+					<ActionInput v-if="isPasswordProtected"
+						ref="password"
+						icon=""
+						:disabled="saving"
+						:required="config.enforcePasswordForPublicLink"
+						:value="hasUnsavedPassword ? share.newPassword : '***************'"
+						autocomplete="new-password"
+						:type="hasUnsavedPassword ? 'text': 'password'">
+						{{ t('files_sharing', 'Enter a password') }}
+					</ActionInput>
+					<div v-if="isPasswordProtected"
+						class="password-message">
+						{{ t('files_sharing', 'The password is not send with the email to maintain confidentiality.') }}
+					</div>
+
+					<!-- password protected by Talk -->
+					<ActionCheckbox v-if="isPasswordProtectedByTalkAvailable"
+						:checked.sync="share.sendPasswordByTalk"
+						:disabled="!canTogglePasswordProtectedByTalkAvailable || saving"
+						class="share-link-password-talk-checkbox"
+						@change="addPasswordProtectedByTalkChange">
+						{{ t('files_sharing', 'Video verification') }}
+					</ActionCheckbox>
+
+					<!-- expiration date -->
+					<ActionCheckbox
+						v-if="canHaveExpirationDate"
+						:checked.sync="hasExpirationDate">
+						{{ config.isDefaultInternalExpireDateEnforced
+							? t('files_sharing', 'Expiration date enforced')
+							: t('files_sharing', 'Set expiration date') }}
+					</ActionCheckbox>
+					<ActionInput v-if="hasExpirationDate"
+						ref="expireDate"
+						:disabled="saving"
+						:first-day-of-week="firstDay"
+						:lang="lang"
+						:value="share.expireDate"
+						value-type="format"
+						icon="icon-calendar-dark"
+						type="date"
+						@update:value="addExpirationDate">
+						{{ t('files_sharing', 'Enter a date') }}
+					</ActionInput>
+				</div>
 			</div>
-
-			<!-- password protected by Talk -->
-			<ActionCheckbox v-if="isPasswordProtectedByTalkAvailable"
-				:checked.sync="share.sendPasswordByTalk"
-				:disabled="!canTogglePasswordProtectedByTalkAvailable || saving"
-				class="share-link-password-talk-checkbox"
-				@change="addPasswordProtectedByTalkChange">
-				{{ t('files_sharing', 'Video verification') }}
-			</ActionCheckbox>
-
-			<!-- expiration date -->
-			<ActionCheckbox
-				v-if="canHaveExpirationDate"
-				:checked.sync="hasExpirationDate">
-				{{ config.isDefaultInternalExpireDateEnforced
-					? t('files_sharing', 'Expiration date enforced')
-					: t('files_sharing', 'Set expiration date') }}
-			</ActionCheckbox>
-			<ActionInput v-if="hasExpirationDate"
-				ref="expireDate"
-				:disabled="saving"
-				:first-day-of-week="firstDay"
-				:lang="lang"
-				:value="share.expireDate"
-				value-type="format"
-				icon="icon-calendar-dark"
-				type="date"
-				@update:value="addExpirationDate">
-				{{ t('files_sharing', 'Enter a date') }}
-			</ActionInput>
 		</template>
 		<template v-else>
 			<!-- folder -->
@@ -169,39 +179,43 @@
 				</ActionRadio>
 			</template>
 
-			<label>
-				{{ t('files_sharing', 'Advanced settings') }}
-			</label>
-			<!-- reshare permission -->
-			<ActionCheckbox
-				v-if="config.isResharingAllowed"
-				ref="canReshare"
-				:checked.sync="canReshare"
-				:value="permissionsShare"
-				:disabled="saving || !canSetReshare">
-				{{ t('files_sharing', 'Allow resharing') }}
-			</ActionCheckbox>
+			<div>
+				<label class="advanced-settings" @click="show = !show">
+					{{ t('files_sharing', 'Advanced') }}
+				</label>
+				<div v-show="show">
+					<!-- reshare permission -->
+					<ActionCheckbox
+						v-if="config.isResharingAllowed"
+						ref="canReshare"
+						:checked.sync="canReshare"
+						:value="permissionsShare"
+						:disabled="saving || !canSetReshare">
+						{{ t('files_sharing', 'Allow resharing') }}
+					</ActionCheckbox>
 
-			<!-- expiration date -->
-			<ActionCheckbox
-				v-if="canHaveExpirationDate"
-				:checked.sync="hasExpirationDate">
-				{{ config.isDefaultInternalExpireDateEnforced
-					? t('files_sharing', 'Expiration date enforced')
-					: t('files_sharing', 'Set expiration date') }}
-			</ActionCheckbox>
-			<ActionInput v-if="hasExpirationDate"
-				ref="expireDate"
-				:disabled="saving"
-				:first-day-of-week="firstDay"
-				:lang="lang"
-				:value="share.expireDate"
-				value-type="format"
-				icon="icon-calendar-dark"
-				type="date"
-				@update:value="addExpirationDate">
-				{{ t('files_sharing', 'Enter a date') }}
-			</ActionInput>
+					<!-- expiration date -->
+					<ActionCheckbox
+						v-if="canHaveExpirationDate"
+						:checked.sync="hasExpirationDate">
+						{{ config.isDefaultInternalExpireDateEnforced
+							? t('files_sharing', 'Expiration date enforced')
+							: t('files_sharing', 'Set expiration date') }}
+					</ActionCheckbox>
+					<ActionInput v-if="hasExpirationDate"
+						ref="expireDate"
+						:disabled="saving"
+						:first-day-of-week="firstDay"
+						:lang="lang"
+						:value="share.expireDate"
+						value-type="format"
+						icon="icon-calendar-dark"
+						type="date"
+						@update:value="addExpirationDate">
+						{{ t('files_sharing', 'Enter a date') }}
+					</ActionInput>
+				</div>
+			</div>
 		</template>
 
 		<button class="status-buttons__select"
@@ -269,6 +283,8 @@ export default {
 			publicUploadRValue: OC.PERMISSION_READ,
 			publicUploadWValue: OC.PERMISSION_CREATE,
 			publicUploadEValue: OC.PERMISSION_UPDATE | OC.PERMISSION_READ,
+			show: true,
+			showAdLink: true,
 		}
 	},
 
@@ -487,6 +503,9 @@ export default {
 	display: none !important;
 }
 .password-message {
+	margin-left: 43px;
+}
+.filedrop-message {
 	margin-left: 43px;
 }
 </style>

@@ -46,7 +46,7 @@
 				<SharingInput v-if="!loading"
 					:can-reshare="canReshare"
 					:file-info="fileInfo"
-					:link-shares="linkShares"
+					:linkShares="linkShares"
 					:reshare="reshare"
 					:shares="shares"
 					@add:share="addShare" />

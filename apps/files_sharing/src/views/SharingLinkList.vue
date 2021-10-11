@@ -23,10 +23,14 @@
 <template>
 	<ul v-if="canLinkShare" class="sharing-link-list">
 		<!-- If no link shares, show the add link default entry -->
-		<SharingEntryLink v-if="!hasLinkShares && canReshare"
+		<!-- <SharingEntryLink v-if="!hasLinkShares && canReshare"
 			:can-reshare="canReshare"
 			:file-info="fileInfo"
-			@add:share="addShare" />
+			@add:share="addShare" /> -->
+
+		<div class="your-shares">
+			{{ t('files_sharing', 'Your shares' ) }}
+		</div>
 
 		<!-- Else we display the list -->
 		<template v-if="hasShares">
@@ -39,6 +43,11 @@
 				@add:share="addShare(...arguments)"
 				@update:share="awaitForShare(...arguments)"
 				@remove:share="removeShare" />
+		</template>
+		<template v-else>
+			<label>
+				{{ t('files_sharing', 'No shares created yet.' ) }}
+			</label>
 		</template>
 	</ul>
 </template>
@@ -145,3 +154,8 @@ export default {
 	},
 }
 </script>
+<style lang="scss">
+.your-shares {
+	font-weight: bold;
+}
+</style>
