@@ -28,10 +28,6 @@
 			:file-info="fileInfo"
 			@add:share="addShare" /> -->
 
-		<div class="your-shares">
-			{{ t('files_sharing', 'Your shares' ) }}
-		</div>
-
 		<!-- Else we display the list -->
 		<template v-if="hasShares">
 			<!-- using shares[index] to work with .sync -->
@@ -43,11 +39,6 @@
 				@add:share="addShare(...arguments)"
 				@update:share="awaitForShare(...arguments)"
 				@remove:share="removeShare" />
-		</template>
-		<template v-else>
-			<label>
-				{{ t('files_sharing', 'No shares created yet.' ) }}
-			</label>
 		</template>
 	</ul>
 </template>
@@ -154,8 +145,3 @@ export default {
 	},
 }
 </script>
-<style lang="scss">
-.your-shares {
-	font-weight: bold;
-}
-</style>

@@ -22,14 +22,6 @@
 
 <template>
 	<div>
-		<p>
-			<span v-if='!canReshare'>
-				{{ t('files_sharing', 'Resharing is not allowed.' ) }}
-			</span>
-			<span v-else>
-				{{ t('files_sharing', 'You can create links or send shares by mail. If you invite MagentaCloud users, you have more opportunities for collaboration.') }}
-			</span>
-		</p>
 		<Multiselect ref="multiselect"
 			class="sharing-input"
 			:clear-on-select="true"

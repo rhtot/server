@@ -42,6 +42,18 @@
 					</template>
 				</SharingEntrySimple>
 
+				<p>
+					<span v-if='!canReshare'>
+						{{ t('files_sharing', 'Resharing is not allowed.' ) }}
+					</span>
+					<span v-else>
+						<span v-if="isSharedWithMe">
+							{{ t('files_sharing', 'Resharing is allowed.' ) }}
+						</span>
+						{{ t('files_sharing', 'You can create links or send shares by mail. If you invite MagentaCloud users, you have more opportunities for collaboration.') }}
+					</span>
+				</p>
+
 				<!-- add new share input -->
 				<SharingInput v-if="!loading"
 					:can-reshare="canReshare"
@@ -50,6 +62,15 @@
 					:reshare="reshare"
 					:shares="shares"
 					@add:share="addShare" />
+
+				<div class="your-shares">
+					{{ t('files_sharing', 'Your shares' ) }}
+				</div>
+				<template v-if="!hasShares && !hasLinkShares">
+					<label>
+						{{ t('files_sharing', 'No shares created yet.' ) }}
+					</label>
+				</template>
 
 				<!-- link shares list -->
 				<SharingLinkList v-if="!loading"
@@ -178,6 +199,14 @@ export default {
 		canReshare() {
 			return !!(this.fileInfo.permissions & OC.PERMISSION_SHARE)
 				|| !!(this.reshare && this.reshare.hasSharePermission && this.config.isResharingAllowed)
+		},
+
+		hasShares() {
+			return this.shares.length > 0
+		},
+
+		hasLinkShares() {
+			return this.linkShares.length > 0
 		},
 	},
 
@@ -380,3 +409,8 @@ export default {
 	},
 }
 </script>
+<style lang="scss">
+.your-shares {
+	font-weight: bold;
+}
+</style>

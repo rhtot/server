@@ -285,6 +285,8 @@ export default {
 			publicUploadEValue: OC.PERMISSION_UPDATE | OC.PERMISSION_READ,
 			show: true,
 			showAdLink: true,
+			sendPasswordByTalk: null,
+			hideDownload: null,
 		}
 	},
 
@@ -461,12 +463,21 @@ export default {
 
 		confirmSharing() {
 			this.loading = true
+
+			if (this.share.sendPasswordByTalk) {
+				this.sendPasswordByTalk = this.share.sendPasswordByTalk.toString()
+			}
+
+			if (this.share.hideDownload) {
+				this.hideDownload = this.share.hideDownload.toString()
+			}
+
 			const result = this.updateShare(this.share.id, {
 				permissions: this.share.permissions,
-				hideDownload: this.share.hideDownload.toString(),
+				hideDownload: this.hideDownload,
 				password: this.share.password,
 				expireDate: this.share.expireDate,
-				sendPasswordByTalk: this.share.sendPasswordByTalk.toString(),
+				sendPasswordByTalk: this.sendPasswordByTalk,
 			})
 			// this.$emit('add:share', this.share)
 			console.debug('updated share', result)
