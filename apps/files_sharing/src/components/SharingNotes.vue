@@ -25,12 +25,16 @@
 		<div class="sharing-notes">
 			<!-- note -->
 			<template>
-				<label>
-					{{ t('files_sharing', 'Note to recipient') }}
+				<label class="note-title">
+					{{ t('files_sharing', 'Your Message') }}
 				</label>
+				<p class="note-subtitle">
+					{{ t('files_sharing', 'You can attach a message to the share.') }}
+				</p>
 				<div>
 					<textarea
 						ref="note"
+						placeholder="Your message..."
 						v-model="shareNote"
 						class="sharing-note"
 						:disabled="saving" />
@@ -193,5 +197,8 @@ export default {
 .sharing-note {
 	width: 100%;
 	height: 200px;
+}
+.note-title {
+	font-weight: bold;
 }
 </style>
