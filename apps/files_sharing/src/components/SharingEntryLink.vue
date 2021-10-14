@@ -49,10 +49,11 @@
 					<!-- file -->
 					<template v-else>
 						<select
+							disabled="true"
 							:name="randomId"
 							@change="togglePermissions">
 							<option :value="publicUploadRValue" :selected="sharePermissions === publicUploadRValue">{{ t('files_sharing', 'Read only') }}</option>
-							<option :value="publicUploadEValue" :selected="sharePermissions === publicUploadEValue">{{ t('files_sharing', 'Read and write') }}</option>
+							<option disabled :value="publicUploadEValue" :selected="sharePermissions === publicUploadEValue">{{ t('files_sharing', 'Read and write') }}</option>
 						</select>
 					</template>
 				</template>

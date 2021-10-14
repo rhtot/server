@@ -61,14 +61,14 @@
 				<ActionRadio :checked="sharePermissions === publicUploadRValue"
 					:value="publicUploadRValue"
 					:name="randomId"
-					:disabled="saving"
+					:disabled="true"
 					@change="addPermissions">
 					{{ t('files_sharing', 'Read only') }}
 				</ActionRadio>
 
 				<ActionRadio :checked="sharePermissions === publicUploadEValue"
 					:value="publicUploadEValue"
-					:disabled="saving"
+					:disabled="true"
 					:name="randomId"
 					@change="addPermissions">
 					{{ t('files_sharing', 'Read and write') }}
@@ -79,6 +79,7 @@
 				<label @click="showAdLink = !showAdLink">
 					{{ t('files_sharing', 'Advanced') }}
 				</label>
+				<span class="sort-indicator icon-triangle-s"></span>
 				<div v-show="showAdLink">
 					<ActionCheckbox :checked.sync="share.hideDownload"
 						:disabled="saving"
@@ -183,6 +184,7 @@
 				<label class="advanced-settings" @click="show = !show">
 					{{ t('files_sharing', 'Advanced') }}
 				</label>
+				<span class="sort-indicator icon-triangle-s"></span>
 				<div v-show="show">
 					<!-- reshare permission -->
 					<ActionCheckbox
