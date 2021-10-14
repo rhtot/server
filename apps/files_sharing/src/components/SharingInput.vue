@@ -49,7 +49,7 @@
 		</Multiselect>
 		<!-- Create new share -->
 		<button v-if="canReshare"
-			class="status-buttons__select"
+			class="add-new-link-btn"
 			@click.prevent.stop="onNewLinkShare">
 			{{ t('files_sharing', 'Add link') }}
 		</button>

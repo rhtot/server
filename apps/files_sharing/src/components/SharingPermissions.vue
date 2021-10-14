@@ -75,8 +75,8 @@
 				</ActionRadio>
 			</template>
 
-			<div>
-				<label class="advanced-settings" @click="showAdLink = !showAdLink">
+			<div class="advanced-settings">
+				<label @click="showAdLink = !showAdLink">
 					{{ t('files_sharing', 'Advanced') }}
 				</label>
 				<div v-show="showAdLink">

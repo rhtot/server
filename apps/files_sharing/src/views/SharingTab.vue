@@ -42,7 +42,7 @@
 					</template>
 				</SharingEntrySimple>
 
-				<p>
+				<p class="sharing-message">
 					<span v-if='!canReshare'>
 						{{ t('files_sharing', 'Resharing is not allowed.' ) }}
 					</span>
