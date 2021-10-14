@@ -34,9 +34,7 @@ class CapabilitiesTest extends TestCase {
 		$capabilities = new Capabilities();
 		$expected = [
 			'dav' => [
-				'chunking' => '1.0',
-				// disabled because of https://github.com/nextcloud/desktop/issues/4243
-				// 'bulkupload' => '1.0',
+				'chunking' => '2.0'
 			],
 		];
 		$this->assertSame($expected, $capabilities->getCapabilities());
