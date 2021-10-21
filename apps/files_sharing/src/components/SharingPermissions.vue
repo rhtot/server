@@ -65,6 +65,10 @@
 					@change="addPermissions">
 					{{ t('files_sharing', 'Read only') }}
 				</ActionRadio>
+				<div
+					class="readonly-message">
+					{{ t('files_sharing', 'There are no editing functions for files shared with non-MagentaCLOUD users.') }}
+				</div>
 
 				<ActionRadio :checked="sharePermissions === publicUploadEValue"
 					:value="publicUploadEValue"
@@ -77,9 +81,8 @@
 
 			<div class="advanced-settings">
 				<label @click="showAdLink = !showAdLink">
-					{{ t('files_sharing', 'Advanced') }}
+					{{ t('files_sharing', 'Advanced') }}<span class="sort-indicator icon-triangle-s"></span>
 				</label>
-				<span class="sort-indicator icon-triangle-s"></span>
 				<div v-show="showAdLink">
 					<ActionCheckbox :checked.sync="share.hideDownload"
 						:disabled="saving"
@@ -182,9 +185,8 @@
 
 			<div>
 				<label class="advanced-settings" @click="show = !show">
-					{{ t('files_sharing', 'Advanced') }}
+					{{ t('files_sharing', 'Advanced') }}<span class="sort-indicator icon-triangle-s"></span>
 				</label>
-				<span class="sort-indicator icon-triangle-s"></span>
 				<div v-show="show">
 					<!-- reshare permission -->
 					<ActionCheckbox
@@ -516,6 +518,9 @@ export default {
 	display: none !important;
 }
 .password-message {
+	margin-left: 43px;
+}
+.readonly-message {
 	margin-left: 43px;
 }
 .filedrop-message {
