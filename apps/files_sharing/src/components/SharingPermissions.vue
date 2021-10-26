@@ -146,6 +146,9 @@
 			</div>
 		</template>
 		<template v-else>
+			<label class="permissions">
+				{{ t('files_sharing', 'Permissions') }}
+			</label>
 			<!-- folder -->
 			<template v-if="isFolder && config.isPublicUploadEnabled">
 				<ActionRadio :checked="sharePermissions === publicUploadRValue"
@@ -183,8 +186,8 @@
 				</ActionRadio>
 			</template>
 
-			<div>
-				<label class="advanced-settings" @click="show = !show">
+			<div class="advanced-settings">
+				<label @click="show = !show">
 					{{ t('files_sharing', 'Advanced') }}<span class="sort-indicator icon-triangle-s"></span>
 				</label>
 				<div v-show="show">
