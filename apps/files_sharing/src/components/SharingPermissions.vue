@@ -81,7 +81,7 @@
 
 			<div class="advanced-settings">
 				<label @click="showAdLink = !showAdLink">
-					{{ t('files_sharing', 'Advanced') }}<span class="sort-indicator icon-triangle-s"></span>
+					{{ t('files_sharing', 'Advanced') }}<span v-bind:class="['sort-indicator',{ 'icon-triangle-s':showAdLink},{'icon-triangle-n':!showAdLink}]"></span>
 				</label>
 				<div v-show="showAdLink">
 					<ActionCheckbox :checked.sync="share.hideDownload"
@@ -188,7 +188,7 @@
 
 			<div class="advanced-settings">
 				<label @click="show = !show">
-					{{ t('files_sharing', 'Advanced') }}<span class="sort-indicator icon-triangle-s"></span>
+					{{ t('files_sharing', 'Advanced') }}<span v-bind:class="['sort-indicator',{ 'icon-triangle-s':showAdLink},{'icon-triangle-n':!showAdLink}]"></span>
 				</label>
 				<div v-show="show">
 					<!-- reshare permission -->
