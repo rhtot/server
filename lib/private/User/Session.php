@@ -437,7 +437,9 @@ class Session implements IUserSession, Emitter {
 								$password,
 								IRequest $request,
 								OC\Security\Bruteforce\Throttler $throttler) {
+		\OC::$server->getLogger()->info('logClientIn before');
 		$currentDelay = $throttler->sleepDelay($request->getRemoteAddress(), 'login');
+		\OC::$server->getLogger()->info('logClientIn after throttler');
 
 		if ($this->manager instanceof PublicEmitter) {
 			$this->manager->emit('\OC\User', 'preLogin', [$user, $password]);
@@ -457,6 +459,7 @@ class Session implements IUserSession, Emitter {
 			throw new PasswordLoginForbiddenException();
 		}
 
+		\OC::$server->getLogger()->info('logClientIn before actual login');
 		// Try to login with this username and password
 		if (!$this->login($user, $password)) {
 
@@ -476,6 +479,7 @@ class Session implements IUserSession, Emitter {
 			}
 		}
 
+		\OC::$server->getLogger()->info('logClientIn after actual login');
 		if ($isTokenPassword) {
 			$this->session->set('app_password', $password);
 		} elseif ($this->supportsCookies($request)) {
@@ -483,6 +487,7 @@ class Session implements IUserSession, Emitter {
 			$this->createSessionToken($request, $this->getUser()->getUID(), $user, $password);
 		}
 
+		\OC::$server->getLogger()->info('logClientIn finished');
 		return true;
 	}
 
