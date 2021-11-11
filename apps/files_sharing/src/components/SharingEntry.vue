@@ -39,26 +39,40 @@
 				<span>{{ share.status.message || '' }}</span>
 			</p>
 
-			<template v-if="share.canEdit">
-				<!-- folder -->
-				<template v-if="isFolder && fileHasCreatePermission && config.isPublicUploadEnabled">
-					<select
-						:name="randomId"
-						@change="togglePermissions">
-						<option :value="publicUploadRValue" :selected="sharePermissions === publicUploadRValue">{{ t('files_sharing', 'Read only') }}</option>
-						<option :value="publicUploadRWValue" :selected="sharePermissions === publicUploadRWValue">{{ t('files_sharing', 'Read, write and upload') }}</option>
-					</select>
+			<div id="app">
+				<template v-if="share.canEdit">
+					<!-- folder -->
+					<template v-if="isFolder && fileHasCreatePermission && config.isPublicUploadEnabled">
+						<CustomSelect
+							:title="title"
+							:options="getFolderOptions"
+							:default="sharePermissions"
+							@setSelectedOption="togglePermissions($event);"
+							class="select" />
+						<!-- <select
+							:name="randomId"
+							@change="togglePermissions">
+							<option :value="publicUploadRValue" :selected="sharePermissions === publicUploadRValue">{{ t('files_sharing', 'Read only') }}</option>
+							<option :value="publicUploadRWValue" :selected="sharePermissions === publicUploadRWValue">{{ t('files_sharing', 'Read, write and upload') }}</option>
+						</select> -->
+					</template>
+					<!-- files -->
+					<template v-else>
+						<CustomSelect
+							:title="title"
+							:options="getFileOptions"
+							:default="sharePermissions"
+							@setSelectedOption="togglePermissions($event);"
+							class="select" />
+						<!-- <select
+							:name="randomId"
+							@change="togglePermissions">
+							<option :value="publicUploadRValue" :selected="sharePermissions === publicUploadRValue">{{ t('files_sharing', 'Read only') }}</option>
+							<option :value="publicUploadEValue" :selected="sharePermissions === publicUploadEValue">{{ t('files_sharing', 'Read and write') }}</option>
+						</select> -->
+					</template>
 				</template>
-				<!-- files -->
-				<template v-else>
-					<select
-						:name="randomId"
-						@change="togglePermissions">
-						<option :value="publicUploadRValue" :selected="sharePermissions === publicUploadRValue">{{ t('files_sharing', 'Read only') }}</option>
-						<option :value="publicUploadEValue" :selected="sharePermissions === publicUploadEValue">{{ t('files_sharing', 'Read and write') }}</option>
-					</select>
-				</template>
-			</template>
+			</div>
 		</component>
 		<Actions v-if="open === false"
 			menu-align="right"
@@ -98,6 +112,7 @@ import ActionTextEditable from '@nextcloud/vue/dist/Components/ActionTextEditabl
 import Tooltip from '@nextcloud/vue/dist/Directives/Tooltip'
 
 import SharesMixin from '../mixins/SharesMixin'
+import CustomSelect from './CustomSelect'
 
 export default {
 	name: 'SharingEntry',
@@ -109,6 +124,7 @@ export default {
 		ActionInput,
 		ActionTextEditable,
 		Avatar,
+		CustomSelect,
 	},
 
 	directives: {
@@ -290,6 +306,21 @@ export default {
 			return (typeof this.share.status === 'object' && !Array.isArray(this.share.status))
 		},
 
+		getFolderOptions() {
+			const options = []
+			options[this.publicUploadRValue] = t('files_sharing', 'Read only')
+			options[this.publicUploadRWValue] = t('files_sharing', 'Read, write and upload')
+
+			return options
+		},
+
+		getFileOptions() {
+			const options = []
+			options[this.publicUploadRValue] = t('files_sharing', 'Read only')
+			options[this.publicUploadEValue] = t('files_sharing', 'Read and write')
+
+			return options
+		},
 	},
 
 	methods: {
@@ -306,12 +337,8 @@ export default {
 			this.queueUpdate('permissions')
 		},
 
-		/**
-		 * On permissions change
-		 * @param {Event} event js event
-		 */
-		togglePermissions(event) {
-			const permissions = parseInt(event.target.value, 10)
+		togglePermissions(option) {
+			const permissions = parseInt(option, 10)
 			| (this.canReshare ? this.permissionsShare : 0)
 			this.share.permissions = permissions
 			this.queueUpdate('permissions')
@@ -360,5 +387,13 @@ export default {
 	&__actions {
 		margin-left: auto;
 	}
+}
+
+.sharing-entry__desc {
+	overflow: inherit !important;
+}
+
+#app {
+	min-width: 250px;
 }
 </style>

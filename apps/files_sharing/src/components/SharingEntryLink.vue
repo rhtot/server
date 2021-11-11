@@ -33,31 +33,31 @@
 				{{ subtitle }}
 			</p>
 
-			<template v-if="share">
-				<template v-if="share.canEdit">
-					<!-- folder -->
-					<template v-if="isFolder && fileHasCreatePermission && config.isPublicUploadEnabled">
-						<select
-							:name="randomId"
-							@change="togglePermissions">
-							<option :value="publicUploadRValue" :selected="sharePermissions === publicUploadRValue">{{ t('files_sharing', 'Read only') }}</option>
-							<option :value="publicUploadRWValue" :selected="sharePermissions === publicUploadRWValue">{{ t('files_sharing', 'Read, write and upload') }}</option>
-							<option :value="publicUploadWValue" :selected="sharePermissions === publicUploadWValue">{{ t('files_sharing', 'File drop (upload only)') }}</option>
-						</select>
-					</template>
+			<div id="app">
+				<template v-if="share">
+					<template v-if="share.canEdit">
+						<!-- folder -->
+						<template v-if="isFolder && fileHasCreatePermission && config.isPublicUploadEnabled">
+							<CustomSelect
+								:title="title"
+								:options="getFolderOptions"
+								:default="sharePermissions"
+								@setSelectedOption="togglePermissions($event);"
+								class="select" />
+						</template>
 
-					<!-- file -->
-					<template v-else>
-						<select
-							disabled="true"
-							:name="randomId"
-							@change="togglePermissions">
-							<option :value="publicUploadRValue" :selected="sharePermissions === publicUploadRValue">{{ t('files_sharing', 'Read only') }}</option>
-							<option disabled :value="publicUploadEValue" :selected="sharePermissions === publicUploadEValue">{{ t('files_sharing', 'Read and write') }}</option>
-						</select>
+						<!-- file -->
+						<template v-else>
+							<CustomSelect
+								:title="title"
+								:options="getFileOptions"
+								:default="sharePermissions"
+								@setSelectedOption="togglePermissions($event);"
+								class="select" />
+						</template>
 					</template>
 				</template>
-			</template>
+			</div>
 		</div>
 
 		<!-- clipboard -->
@@ -222,6 +222,7 @@ import Tooltip from '@nextcloud/vue/dist/Directives/Tooltip'
 import GeneratePassword from '../utils/GeneratePassword'
 import Share from '../models/Share'
 import SharesMixin from '../mixins/SharesMixin'
+import CustomSelect from './CustomSelect'
 
 export default {
 	name: 'SharingEntryLink',
@@ -234,6 +235,7 @@ export default {
 		ActionLink,
 		ActionText,
 		Avatar,
+		CustomSelect,
 	},
 
 	directives: {
@@ -426,6 +428,23 @@ export default {
 		isPasswordPolicyEnabled() {
 			return typeof this.config.passwordPolicy === 'object'
 		},
+
+		getFolderOptions() {
+			const options = []
+			options[this.publicUploadRValue] = t('files_sharing', 'Read only')
+			options[this.publicUploadRWValue] = t('files_sharing', 'Read, write and upload')
+			options[this.publicUploadWValue] = t('files_sharing', 'File drop (upload only)')
+
+			return options
+		},
+
+		getFileOptions() {
+			const options = []
+			options[this.publicUploadRValue] = t('files_sharing', 'Read only')
+			options[this.publicUploadEValue] = t('files_sharing', 'Read and write')
+
+			return options
+		},
 	},
 
 	methods: {
@@ -565,12 +584,8 @@ export default {
 			}
 		},
 
-		/**
-		 * On permissions change
-		 * @param {Event} event js event
-		 */
-		togglePermissions(event) {
-			const permissions = parseInt(event.target.value, 10)
+		togglePermissions(option) {
+			const permissions = parseInt(option, 10)
 			this.share.permissions = permissions
 			this.queueUpdate('permissions')
 		},
@@ -717,5 +732,13 @@ export default {
 	.icon-checkmark-color {
 		opacity: 1;
 	}
+}
+
+.sharing-entry__desc {
+	overflow: inherit !important;
+}
+
+#app {
+	min-width: 250px;
 }
 </style>
