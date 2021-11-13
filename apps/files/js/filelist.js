@@ -3578,6 +3578,9 @@
 				else if(appCount > appList.length){
 					this.$el.find('#selectedActionLabel').css('display','none');
 				}
+				else if(appCount > appList.length){
+					$('#selectedActionLabel').css('display','none');
+				}
 			}
 
 			for (let k = 0; k < appList.length; k++) {
