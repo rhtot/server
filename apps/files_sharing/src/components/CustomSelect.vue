@@ -21,24 +21,27 @@
   -->
 
 <template>
-	<div disabled="true"
-		class="custom-select"
+	<div class="custom-select"
 		:tabindex="tabindex"
 		@blur="open = false">
-		<div class="selected" :class="{ open: open }" @click="open = !open">
-			{{ selected }}
+		<div @click="open = isDisable ? open : !open">
+			<h5>{{ title }}</h5>
+			<div class="selected" :class="{ open: open }">
+				{{ selected }}
+				<span class="sort-indicator icon-triangle-s"></span>
+			</div>
 		</div>
 		<div class="items" :class="{ selectHide: !open }">
 			<div
-				v-for="(option, i) of options"
+				v-for="(option, i) of Object.keys(options)"
 				:key="i"
 				@click="
-					selected = option;
+					selected = options[option];
 					open = false;
 					$emit('input', option);
-					setCurrentSelectedOption(i);
+					setCurrentSelectedOption(option);
 				">
-				{{ option }}
+				{{ options[option] }}
 			</div>
 		</div>
 	</div>
@@ -61,6 +64,15 @@ export default {
 			required: false,
 			default: 0,
 		},
+		title: {
+			type: String,
+			required: false,
+			default: null,
+		},
+		isDisable: {
+			type: Boolean,
+			default: false,
+		}
 	},
 	data() {
 		return {
@@ -79,7 +91,7 @@ export default {
 	},
 	methods: {
 		setCurrentSelectedOption(option) {
-			console.info('in setCurrentSelectedOption-', this.options)
+			console.info('in setCurrentSelectedOption-', option)
 			this.$emit('setSelectedOption', option)
 		},
 	}
@@ -110,7 +122,7 @@ export default {
 	border-radius: 6px 6px 0px 0px;
 }
 
-.custom-select .selected:after {
+/* .custom-select .selected:after {
 	position: absolute;
 	content: "";
 	top: 22px;
@@ -119,7 +131,7 @@ export default {
 	height: 0;
 	border: 5px solid transparent;
 	border-color: #0a0a0a transparent transparent transparent;
-}
+} */
 
 .custom-select .items {
 	border-radius: 0px 0px 6px 6px;

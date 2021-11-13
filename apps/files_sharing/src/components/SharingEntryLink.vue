@@ -26,12 +26,12 @@
 			:icon-class="isEmailShareType ? 'avatar-link-share icon-mail-white' : 'avatar-link-share icon-public-white'"
 			class="sharing-entry__avatar" />
 		<div class="sharing-entry__desc">
-			<h5 :title="title">
+			<!-- <h5 :title="title">
 				{{ title }}
 			</h5>
 			<p v-if="subtitle">
 				{{ subtitle }}
-			</p>
+			</p> -->
 
 			<div id="app">
 				<template v-if="share">
@@ -50,6 +50,7 @@
 						<template v-else>
 							<CustomSelect
 								:title="title"
+								:isDisable="true"
 								:options="getFileOptions"
 								:default="sharePermissions"
 								@setSelectedOption="togglePermissions($event);"
@@ -184,12 +185,6 @@
 					@click.prevent="onDelete">
 					{{ t('files_sharing', 'Unshare') }}
 				</ActionButton>
-				<!-- <ActionButton v-if="!isEmailShareType && canReshare"
-					class="new-share-link"
-					icon="icon-add"
-					@click.prevent.stop="onNewLinkShare">
-					{{ t('files_sharing', 'Add another link') }}
-				</ActionButton> -->
 			</template>
 
 			<!-- Create new share -->

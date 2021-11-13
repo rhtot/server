@@ -33,11 +33,11 @@
 			v-tooltip.auto="tooltip"
 			:href="share.shareWithLink"
 			class="sharing-entry__desc">
-			<h5>{{ title }}<span v-if="!isUnique" class="sharing-entry__desc-unique"> ({{ share.shareWithDisplayNameUnique }})</span></h5>
+			<!-- <h5>{{ title }}<span v-if="!isUnique" class="sharing-entry__desc-unique"> ({{ share.shareWithDisplayNameUnique }})</span></h5>
 			<p v-if="hasStatus">
 				<span>{{ share.status.icon || '' }}</span>
 				<span>{{ share.status.message || '' }}</span>
-			</p>
+			</p> -->
 
 			<div id="app">
 				<template v-if="share.canEdit">
@@ -49,12 +49,6 @@
 							:default="sharePermissions"
 							@setSelectedOption="togglePermissions($event);"
 							class="select" />
-						<!-- <select
-							:name="randomId"
-							@change="togglePermissions">
-							<option :value="publicUploadRValue" :selected="sharePermissions === publicUploadRValue">{{ t('files_sharing', 'Read only') }}</option>
-							<option :value="publicUploadRWValue" :selected="sharePermissions === publicUploadRWValue">{{ t('files_sharing', 'Read, write and upload') }}</option>
-						</select> -->
 					</template>
 					<!-- files -->
 					<template v-else>
@@ -64,12 +58,6 @@
 							:default="sharePermissions"
 							@setSelectedOption="togglePermissions($event);"
 							class="select" />
-						<!-- <select
-							:name="randomId"
-							@change="togglePermissions">
-							<option :value="publicUploadRValue" :selected="sharePermissions === publicUploadRValue">{{ t('files_sharing', 'Read only') }}</option>
-							<option :value="publicUploadEValue" :selected="sharePermissions === publicUploadEValue">{{ t('files_sharing', 'Read and write') }}</option>
-						</select> -->
 					</template>
 				</template>
 			</div>
