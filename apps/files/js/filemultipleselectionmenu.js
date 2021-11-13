@@ -39,10 +39,11 @@
 			return false;
 		},
 		toggleItemVisibility: function (itemName, show) {
+			var toggle= $('.filesSelectionMenu');
 			if (show) {
-				this.$el.find('.item-' + itemName).removeClass('hidden');
+				toggle.find('.item-' + itemName).removeClass('hidden-action');
 			} else {
-				this.$el.find('.item-' + itemName).addClass('hidden');
+				toggle.find('.item-' + itemName).addClass('hidden-action');
 			}
 		},
 		updateItemText: function (itemName, translation) {

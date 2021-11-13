@@ -3509,6 +3509,21 @@
 						this.fileMultiSelectMenu.toggleItemVisibility('copyMove', false);
 					}
 				}
+
+				if (this.fileMultipleSelectionMenu) {
+					this.fileMultipleSelectionMenu.toggleItemVisibility('download', this.isSelectedDownloadable());
+					this.fileMultipleSelectionMenu.toggleItemVisibility('delete', this.isSelectedDeletable());
+					this.fileMultipleSelectionMenu.toggleItemVisibility('copyMove', this.isSelectedCopiable());
+					if (this.isSelectedCopiable()) {
+						if (this.isSelectedMovable()) {
+							this.fileMultipleSelectionMenu.updateItemText('copyMove', t('files', 'Move or copy'));
+						} else {
+							this.fileMultipleSelectionMenu.updateItemText('copyMove', t('files', 'Copy'));
+						}
+					} else {
+						this.fileMultipleSelectionMenu.toggleItemVisibility('copyMove', false);
+					}
+				}
 			}
 		},
 
@@ -3516,7 +3531,7 @@
 		 * Show or hide file action menu based on the current selection
 		*/
 		resizeFileActionMenu: function() {
-			const appList = $('.filesSelectionMenu ul li');
+			const appList = $('.filesSelectionMenu ul li:not(.hidden-action)');
 			const headerWidth = $('#filestable thead').outerWidth();
 			const checkWidth = $('#headerSelection').outerWidth();
 			const headerNameWidth = $('#headerName').outerWidth();
@@ -3556,6 +3571,9 @@
 				else if (!isFinite(appCount))
 				{
 					$('#selectedActionLabel').css('display','block');
+				}
+				else if(appCount > appList.length){
+					$('#selectedActionLabel').css('display','none');
 				}
 			}
 
