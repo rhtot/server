@@ -24,7 +24,7 @@
 	<div class="custom-select"
 		:tabindex="tabindex"
 		@blur="open = false">
-		<div @click="open = isDisable ? open : !open">
+		<div @click="open = isDisable ? open : !open" :class="isDisable ? 'disabledRow' : null">
 			<h5>{{ title }}</h5>
 			<div class="selected" :class="{ open: open }">
 				{{ selected }}
@@ -33,6 +33,7 @@
 		</div>
 		<div class="items" :class="{ selectHide: !open }">
 			<div
+				:class="options[option] == selected ? 'selectedItem' : null"
 				v-for="(option, i) of Object.keys(options)"
 				:key="i"
 				@click="
@@ -41,6 +42,7 @@
 					$emit('input', option);
 					setCurrentSelectedOption(option);
 				">
+				<span class="icon-select-check"></span>
 				{{ options[option] }}
 			</div>
 		</div>
