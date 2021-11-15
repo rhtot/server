@@ -27,23 +27,23 @@
 		<div @click="open = isDisable ? open : !open" :class="isDisable ? 'disabledRow' : null">
 			<h5>{{ title }}</h5>
 			<div class="selected" :class="{ open: open }">
-				{{ selected }}
+				{{ selected.value }}
 				<span class="sort-indicator icon-triangle-s"></span>
 			</div>
 		</div>
 		<div class="items" :class="{ selectHide: !open }">
 			<div
-				:class="options[option] == selected ? 'selectedItem' : null"
-				v-for="(option, i) of Object.keys(options)"
+				:class="option.key == selected.key ? 'selectedItem' : null"
+				v-for="(option, i) of options"
 				:key="i"
 				@click="
-					selected = options[option];
+					selected = option;
 					open = false;
-					$emit('input', option);
-					setCurrentSelectedOption(option);
+					$emit('input', option.key);
+					setCurrentSelectedOption(option.key);
 				">
 				<span class="icon-select-check"></span>
-				{{ options[option] }}
+				{{ option.value }}
 			</div>
 		</div>
 	</div>
@@ -53,7 +53,7 @@
 export default {
 	props: {
 		options: {
-			type: Array,
+			type: Object,
 			required: true,
 		},
 		default: {
@@ -78,13 +78,7 @@ export default {
 	},
 	data() {
 		return {
-			selected: this.default
-				? this.default
-					? this.options[this.default]
-					: this.options[0]
-				: this.options.length > 0
-					? this.options[0]
-					: null,
+			selected: this.getDefault(this.default),
 			open: false,
 		}
 	},
@@ -95,6 +89,21 @@ export default {
 		setCurrentSelectedOption(option) {
 			console.info('in setCurrentSelectedOption-', option)
 			this.$emit('setSelectedOption', option)
+		},
+
+		getDefault(defaultOption) {
+			let defaultOpt = null
+			if (defaultOption) {
+				for (let i = 0; i < Object.keys(this.options).length; i++) {
+				// this.options.each(function() {
+					if (this.options[i].key === defaultOption) {
+						defaultOpt = this.options[i]
+					}
+				}
+			} else if (Object.keys(this.options).length > 0) {
+				defaultOpt = this.options[0]
+			}
+			return defaultOpt
 		},
 	}
 }

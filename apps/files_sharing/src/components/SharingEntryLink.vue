@@ -425,18 +425,18 @@ export default {
 		},
 
 		getFolderOptions() {
-			const options = []
-			options[this.publicUploadRValue] = t('files_sharing', 'Read only')
-			options[this.publicUploadRWValue] = t('files_sharing', 'Read, write and upload')
-			options[this.publicUploadWValue] = t('files_sharing', 'File drop (upload only)')
+			const options = {}
+			options[0] = { key: this.publicUploadRValue, value: t('files_sharing', 'Read only') }
+			options[1] = { key: this.publicUploadRWValue, value: t('files_sharing', 'Read, write and upload') }
+			options[2] = { key: this.publicUploadWValue, value: t('files_sharing', 'File drop (upload only)') }
 
 			return options
 		},
 
 		getFileOptions() {
-			const options = []
-			options[this.publicUploadRValue] = t('files_sharing', 'Read only')
-			options[this.publicUploadEValue] = t('files_sharing', 'Read and write')
+			const options = {}
+			options[0] = { key: this.publicUploadRValue, value: t('files_sharing', 'Read only') }
+			options[1] = { key: this.publicUploadEValue, value: t('files_sharing', 'Read and write') }
 
 			return options
 		},
