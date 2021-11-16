@@ -475,6 +475,7 @@ import escapeHTML from 'escape-html'
 			var _parent = this;
 			var returnVal='';
 			var firstname='';
+			var Normalfirstname='';
 			var externalShare='';
 			recipients = _.toArray(recipients);
 			recipients.sort(function (a, b) {
@@ -489,7 +490,7 @@ import escapeHTML from 'escape-html'
 				firstname =   val.shareWith;
 				externalShare+= val.shareWithDisplayName+", ";
 			  }else{
-				firstname =   val.shareWith;
+				Normalfirstname =   val.shareWith;
 				returnVal+= val.shareWithDisplayName+", ";
 			  }
 			}); 
