@@ -3576,7 +3576,7 @@
 					this.$el.find('#selectedActionLabel').css('display','none');
 				}
 				else if(appCount > appList.length){
-					$('#selectedActionLabel').css('display','none');
+					this.$el.find('#selectedActionLabel').css('display','none');
 				}
 			}
 
