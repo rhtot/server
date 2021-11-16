@@ -3458,7 +3458,7 @@
 				this.$el.find('#headerDate').removeClass('hidden');
 				this.$el.find('#headerSizeCount').addClass('hidden');
 				this.$el.find('.headerSizeOpen').addClass('hidden');
-				$('#selectedActionLabel').css('display','none');
+				this.$el.find('#selectedActionLabel').css('display','none');
 			}
 			else {
 				this.$el.find('.selectedActions').removeClass('hidden');
@@ -3531,12 +3531,12 @@
 		 * Show or hide file action menu based on the current selection
 		*/
 		resizeFileActionMenu: function() {
-			const appList = $('.filesSelectionMenu ul li:not(.hidden-action)');
-			const headerWidth = $('#filestable thead').outerWidth();
-			const checkWidth = $('#headerSelection').outerWidth();
-			const headerNameWidth = $('#headerName').outerWidth();
-			const actionWidth = $('#selectedActionLabel').outerWidth();
-			const allLabelWidth = $('#allLabel').not('#allLabel:hidden').outerWidth();
+			const appList = this.$el.find('.filesSelectionMenu ul li:not(.hidden-action)');
+			const headerWidth = this.$el.find('#filestable thead').outerWidth();
+			const checkWidth = this.$el.find('#headerSelection').outerWidth();
+			const headerNameWidth = this.$el.find('#headerName').outerWidth();
+			const actionWidth = this.$el.find('#selectedActionLabel').outerWidth();
+			const allLabelWidth = this.$el.find('#allLabel').not('#allLabel:hidden').outerWidth();
 			var availableWidth;
 			if(!allLabelWidth){
 				availableWidth = headerWidth - (checkWidth + headerNameWidth);
@@ -3559,21 +3559,21 @@
 
 			var summary = this._selectionSummary.summary;
 			if (summary.totalFiles === 0 && summary.totalDirs === 0) {
-				$('#selectedActionLabel').css('display','none');
+				this.$el.find('#selectedActionLabel').css('display','none');
 			}
 			else{
 				if(appCount < appList.length) {
-					$('#selectedActionLabel').css('display','block');
+					this.$el.find('#selectedActionLabel').css('display','block');
 				}
 				else if(appCount == appList.length){
-					$('#selectedActionLabel').css('display','none');
+					this.$el.find('#selectedActionLabel').css('display','none');
 				}
 				else if (!isFinite(appCount))
 				{
-					$('#selectedActionLabel').css('display','block');
+					this.$el.find('#selectedActionLabel').css('display','block');
 				}
 				else if(appCount > appList.length){
-					$('#selectedActionLabel').css('display','none');
+					this.$el.find('#selectedActionLabel').css('display','none');
 				}
 			}
 
