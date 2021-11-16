@@ -496,7 +496,7 @@ import escapeHTML from 'escape-html'
 			}); 
 			returnVal = returnVal.replace(/,\s*$/, "");
 			if(returnVal!==""){
-				 returnVal= _parent._formatRemoteSharewith(firstname, returnVal, t('files_sharing', 'Shared with'));
+				 returnVal= _parent._formatRemoteSharewith(Normalfirstname, returnVal, t('files_sharing', 'Shared with'));
 			}
 			if(externalShare!==""){
 			  returnVal+= _parent._formatRemoteSharewith(firstname, externalShare, t('files_sharing', 'Shared with'));              
