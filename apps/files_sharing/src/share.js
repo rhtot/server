@@ -196,7 +196,16 @@ import escapeHTML from 'escape-html'
 						|| shareType === OC.Share.SHARE_TYPE_LINK) {
 						return 'icon-public'
 					}
-					return 'icon-shared'
+					var url_string = window.location.href;
+					var url = new URL(url_string);
+					var c = url.searchParams.get("view");
+					console.log("c===" + c);
+					if(c=="sharingout"){
+					  return '';
+					}
+					else{
+					  return 'icon-shared';
+					}
 				},
 				icon: function(fileName, context) {
 					var shareOwner = context.$file.data('share-owner-id')
@@ -316,17 +325,31 @@ import escapeHTML from 'escape-html'
 				$tr.find('.filename .thumbnail').css('background-image', 'url(' + shareFolderIcon + ')')
 			}
 			// update share action text / icon
+
+			var url_string = window.location.href;
+			var url = new URL(url_string);
+			var c = url.searchParams.get("view");
+
 			if (hasShares || ownerId) {
 				recipients = $tr.data('share-recipient-data')
 				action.addClass('shared-style')
-
-				avatars = '<span>' + t('files_sharing', 'Shared') + '</span>'
-				// even if reshared, only show "Shared by"
+			if(c=="sharingout"){
+				avatars = '<span class="icon icon-share-link">' + t('files_sharing', '') + '</span>'; // even if reshared, only show "Shared by"
 				if (ownerId) {
-					message = t('files_sharing', 'Shared by')
-					avatars = OCA.Sharing.Util._formatRemoteShare(ownerId, owner, message)
+					message = t('files_sharing', 'Shared by');
+					avatars += OCA.Sharing.Util._formatRemoteShare(ownerId, owner, message);
 				} else if (recipients) {
-					avatars = OCA.Sharing.Util._formatShareList(recipients)
+					avatars += OCA.Sharing.Util._formatShareList(recipients);
+				}
+				}
+				else{
+				avatars = '<span>' + t('files_sharing', 'Shared') + '</span>';  // even if reshared, only show "Shared by"
+				if (ownerId) {
+					message = t('files_sharing', 'Shared by');
+					avatars = OCA.Sharing.Util._formatRemoteShare(ownerId, owner, message);
+				} else if (recipients) {
+					avatars = OCA.Sharing.Util._formatShareList(recipients);
+				}
 				}
 				action.html(avatars).prepend(icon)
 
@@ -340,10 +363,15 @@ import escapeHTML from 'escape-html'
 			} else {
 				action.html('<span class="hidden-visually">' + t('files_sharing', 'Shared') + '</span>').prepend(icon)
 			}
-			if (hasLink) {
-				iconClass = 'icon-public'
-			}
-			icon.removeClass('icon-shared icon-public').addClass(iconClass)
+			if(c=="sharingout"){
+				iconClass = '';
+				icon.removeClass('icon-shared icon-public').addClass(iconClass);
+			  }
+			  else{
+				iconClass = 'icon-public';
+				icon.removeClass('icon-shared icon-public').addClass(iconClass);
+			  }
+			  
 		},
 		/**
 		 * Format a remote address
@@ -395,13 +423,24 @@ import escapeHTML from 'escape-html'
 		*/
 		_formatRemoteSharewith: function(shareWith, shareWithDisplayName, message) {
 			var parts = OCA.Sharing.Util._REMOTE_OWNER_REGEXP.exec(shareWith)
-			console.error(parts);
-			if (!parts || !parts[7]) {
+			if(this.validateEmail(shareWith))
+			{
+			  if (!parts || !parts[7]) {
 				// display avatar of the user
-				var avatar = '<span class="avatar" data-username="' + escapeHTML(shareWith) + '" title="' + message + ' ' + escapeHTML(shareWithDisplayName) + '"></span>'
-				var hidden = '<span class="hidden-visually">' + message + ' ' + escapeHTML(shareWithDisplayName) + '</span> '
-				return avatar + hidden
+				var avatar = '<span class="icon icon-shared" data-username="' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWith) + '" title="' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '"></span>';
+				var hidden = '<span class="hidden-visually">' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '</span> ';
+				return avatar + hidden;
+			  }
 			}
+			else{
+			  if (!parts || !parts[7]) {
+				// display avatar of the user
+				var avatar = '<span class="avatar" data-username="' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWith) + '" title="' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '"></span>';
+				var hidden = '<span class="hidden-visually">' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '</span> ';
+				return avatar + hidden;
+			  }
+			}
+
 
 			var userName = parts[2]
 			var userDomain = parts[4]
@@ -433,14 +472,48 @@ import escapeHTML from 'escape-html'
 		* @returns {String[]} modified list of recipients
 		*/
 		_formatShareList: function(recipients) {
-			var _parent = this
-			recipients = _.toArray(recipients)
-			recipients.sort(function(a, b) {
-				return a.shareWithDisplayName.localeCompare(b.shareWithDisplayName)
-			})
-			return $.map(recipients, function(recipient) {
-				return _parent._formatRemoteSharewith(recipient.shareWith, recipient.shareWithDisplayName, t('files_sharing', 'Shared with'))
-			})
+			var _parent = this;
+			var returnVal='';
+			var firstname='';
+			var externalShare='';
+			recipients = _.toArray(recipients);
+			recipients.sort(function (a, b) {
+			  return a.shareWithDisplayName.localeCompare(b.shareWithDisplayName);
+			});
+			// return $.map(recipients, function (recipient) {
+			//   return _parent._formatRemoteSharewith(recipient.shareWith, recipient.shareWithDisplayName, t('files_sharing', 'Shared with'));
+			// });
+			$.each(recipients, function(key,val) {   
+			 
+			  if(_parent.validateEmail(val.shareWith)){
+				firstname =   val.shareWith;
+				externalShare+= val.shareWithDisplayName+", ";
+			  }else{
+				firstname =   val.shareWith;
+				returnVal+= val.shareWithDisplayName+", ";
+			  }
+			}); 
+			returnVal = returnVal.replace(/,\s*$/, "");
+			if(returnVal!==""){
+				 returnVal= _parent._formatRemoteSharewith(firstname, returnVal, t('files_sharing', 'Shared with'));
+			}
+			if(externalShare!==""){
+			  returnVal+= _parent._formatRemoteSharewith(firstname, externalShare, t('files_sharing', 'Shared with'));              
+			  console.log(returnVal);
+			}
+			 return returnVal;
+		},
+
+		/* validate email */
+
+		validateEmail:function _validateEmail(emailAdress)
+		{
+		  let regexEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+		  if (emailAdress.match(regexEmail)) {
+			return true; 
+		  } else {
+			return false; 
+		  }
 		},
 
 		/**
