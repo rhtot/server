@@ -333,14 +333,14 @@ import escapeHTML from 'escape-html'
 			if (hasShares || ownerId) {
 				recipients = $tr.data('share-recipient-data')
 				action.addClass('shared-style')
-			if(c=="sharingout"){
-				avatars = '<span class="icon icon-share-link">' + t('files_sharing', '') + '</span>'; // even if reshared, only show "Shared by"
+			if(c=="sharingout"){				
 				if (ownerId) {
 					message = t('files_sharing', 'Shared by');
 					avatars += OCA.Sharing.Util._formatRemoteShare(ownerId, owner, message);
 				} else if (recipients) {
 					avatars += OCA.Sharing.Util._formatShareList(recipients);
 				}
+				avatars += '<span class="icon icon-share-link">' + t('files_sharing', '') + '</span>'; // even if reshared, only show "Shared by"
 				}
 				else{
 				avatars = '<span>' + t('files_sharing', 'Shared') + '</span>';  // even if reshared, only show "Shared by"
@@ -477,6 +477,7 @@ import escapeHTML from 'escape-html'
 			var firstname='';
 			var Normalfirstname='';
 			var externalShare='';
+			var finalVal='';
 			recipients = _.toArray(recipients);
 			recipients.sort(function (a, b) {
 			  return a.shareWithDisplayName.localeCompare(b.shareWithDisplayName);
@@ -494,15 +495,18 @@ import escapeHTML from 'escape-html'
 				returnVal+= val.shareWithDisplayName+", ";
 			  }
 			}); 
+
+			externalShare = externalShare.replace(/,\s*$/, "");
+			if(externalShare!==""){
+				finalVal+= _parent._formatRemoteSharewith(firstname, externalShare, t('files_sharing', 'Shared with'));              
+				console.log(returnVal);
+			  }
 			returnVal = returnVal.replace(/,\s*$/, "");
 			if(returnVal!==""){
-				 returnVal= _parent._formatRemoteSharewith(Normalfirstname, returnVal, t('files_sharing', 'Shared with'));
+				finalVal+= _parent._formatRemoteSharewith(Normalfirstname, returnVal, t('files_sharing', 'Shared with'));
 			}
-			if(externalShare!==""){
-			  returnVal+= _parent._formatRemoteSharewith(firstname, externalShare, t('files_sharing', 'Shared with'));              
-			  console.log(returnVal);
-			}
-			 return returnVal;
+		
+			 return finalVal;
 		},
 
 		/* validate email */
