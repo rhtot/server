@@ -427,7 +427,7 @@ import escapeHTML from 'escape-html'
 			{
 			  if (!parts || !parts[7]) {
 				// display avatar of the user
-				var avatar = '<span class="icon icon-shared" data-username="' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWith) + '" title="' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '"></span>';
+				var avatar = '<span class="icon icon-share-magenta-user" data-username="' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWith) + '" title="' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '"></span>';
 				var hidden = '<span class="hidden-visually">' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '</span> ';
 				return avatar + hidden;
 			  }
@@ -478,6 +478,10 @@ import escapeHTML from 'escape-html'
 			var Normalfirstname='';
 			var externalShare='';
 			var finalVal='';
+			var internalCount=0;
+			var externalCount=0;
+			var externalSkip=0;
+			var internalSkip=0;
 			recipients = _.toArray(recipients);
 			recipients.sort(function (a, b) {
 			  return a.shareWithDisplayName.localeCompare(b.shareWithDisplayName);
@@ -487,21 +491,36 @@ import escapeHTML from 'escape-html'
 			// });
 			$.each(recipients, function(key,val) {   
 			 
-			  if(_parent.validateEmail(val.shareWith)){
-				firstname =   val.shareWith;
-				externalShare+= val.shareWithDisplayName+", ";
-			  }else{
-				Normalfirstname =   val.shareWith;
-				returnVal+= val.shareWithDisplayName+", ";
-			  }
+				if (_parent.validateEmail(val.shareWith)) {
+					externalCount+=1;
+					if(externalCount >2 && externalSkip==0){
+					  externalShare +=".. ";  
+					  externalSkip=1;
+					}
+					else{
+					  firstname = val.shareWith;
+					  externalShare += val.shareWithDisplayName + ", ";
+					}
+				  } else {
+					internalCount+=1;
+					if(internalCount >2 && internalSkip==0){
+					  returnVal +=  ".. ";
+					  internalSkip=1;  
+					}
+					else{
+					  Normalfirstname = val.shareWith;
+					  returnVal += val.shareWithDisplayName + ", ";
+					}
+					
+				  }
 			}); 
 
-			externalShare = externalShare.replace(/,\s*$/, "");
+			//externalShare = externalShare.replace(/,\s*$/, "");
 			if(externalShare!==""){
 				finalVal+= _parent._formatRemoteSharewith(firstname, externalShare, t('files_sharing', 'Shared with'));              
 				console.log(returnVal);
 			  }
-			returnVal = returnVal.replace(/,\s*$/, "");
+			//returnVal = returnVal.replace(/,\s*$/, "");
 			if(returnVal!==""){
 				finalVal+= _parent._formatRemoteSharewith(Normalfirstname, returnVal, t('files_sharing', 'Shared with'));
 			}
