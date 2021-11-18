@@ -524,7 +524,7 @@ import escapeHTML from 'escape-html'
 			//externalShare = externalShare.replace(/,\s*$/, "");
 			if(externalShare!==""){
 				finalVal+= _parent._formatRemoteSharewith(firstname, externalShare, t('files_sharing', 'Shared with'));              
-				console.log(returnVal);
+				
 			  }
 			//returnVal = returnVal.replace(/,\s*$/, "");
 			if(returnVal!==""){
