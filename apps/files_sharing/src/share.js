@@ -337,16 +337,21 @@ import escapeHTML from 'escape-html'
 			var c = url.searchParams.get("view");
 
 			if (hasShares || ownerId) {
-				recipients = $tr.data('share-recipient-data')
+				recipients = $tr.data('share-recipient-data');
+				var shareTypes1 = $tr.data('share-types');
+
 				action.addClass('shared-style')
-			if(c=="sharingout"){				
+			if(c=="sharingout"){	
+				  avatars='';			
 				if (ownerId) {
 					message = t('files_sharing', 'Shared by');
 					avatars= OCA.Sharing.Util._formatRemoteShare(ownerId, owner, message);
 				} else if (recipients) {
 					avatars = OCA.Sharing.Util._formatShareList(recipients);
 				}
-				avatars += '<span class="icon icon-share-link">' + t('files_sharing', '') + '</span>'; // even if reshared, only show "Shared by"
+				if(shareTypes1 ==3 || typeof shareTypes1 == "string" && shareTypes1.includes('3')){
+					avatars += '<span class="icon icon-share-link">' + t('files_sharing', '') + '</span>'; // even if reshared, only show "Shared by"
+				  }
 				}
 				else{
 				avatars = '<span>' + t('files_sharing', 'Shared') + '</span>';  // even if reshared, only show "Shared by"
@@ -500,7 +505,7 @@ import escapeHTML from 'escape-html'
 				if (_parent.validateEmail(val.shareWith)) {
 					externalCount+=1;
 					if(externalCount >2 && externalSkip==0){
-					  externalShare +=".. ";  
+					  externalShare +="...";  
 					  externalSkip=1;
 					}
 					else{
@@ -510,7 +515,7 @@ import escapeHTML from 'escape-html'
 				  } else {
 					internalCount+=1;
 					if(internalCount >2 && internalSkip==0){
-					  returnVal +=  ".. ";
+					  returnVal +=  "...";
 					  internalSkip=1;  
 					}
 					else{
@@ -521,12 +526,12 @@ import escapeHTML from 'escape-html'
 				  }
 			}); 
 
-			//externalShare = externalShare.replace(/,\s*$/, "");
+			externalShare = externalShare.replace(/,\s*$/, "");
 			if(externalShare!==""){
 				finalVal+= _parent._formatRemoteSharewith(firstname, externalShare, t('files_sharing', 'Shared with'));              
 				
 			  }
-			//returnVal = returnVal.replace(/,\s*$/, "");
+			returnVal = returnVal.replace(/,\s*$/, "");
 			if(returnVal!==""){
 				finalVal+= _parent._formatRemoteSharewith(Normalfirstname, returnVal, t('files_sharing', 'Shared with'));
 			}
