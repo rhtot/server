@@ -132,7 +132,7 @@ class PersonalInfo implements ISettings {
 		$localeParameters = $this->getLocales($user);
 		$messageParameters = $this->getMessageParameters($account);
 		$trashSizeinBytes = self::getTrashbinSize($uid);
-		$filesSizeInBytes = $storageInfo['used'] - ($photoVideoSizeInBytes + $trashSizeinBytes);
+		$filesSizeInBytes = $storageInfo['used'] - ($photoVideoSizeInBytes);
 		if($filesSizeInBytes < 0){
 			$filesSizeInBytes = 0;
 		}
@@ -140,7 +140,7 @@ class PersonalInfo implements ISettings {
 		$parameters = [
 			'total_space' => $totalSpace,
 			'usage' => \OC_Helper::humanFileSize($storageInfo['used']),
-			'usage_relative' => round($storageInfo['relative']),
+			'usage_relative' => $storageInfo['relative'],
 			'quota' => $storageInfo['quota'],
 			'avatarChangeSupported' => $user->canChangeAvatar(),
 			'lookupServerUploadEnabled' => $lookupServerUploadEnabled,
