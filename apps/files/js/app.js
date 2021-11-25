@@ -121,7 +121,7 @@
 						},
 						{
 							name: 'cancel',
-							displayName:  'Cancel',
+							displayName: t('files', 'Cancel'),
 							iconClass: 'icon-close',
 							order: 101,
 						},
