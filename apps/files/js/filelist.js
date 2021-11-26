@@ -3575,9 +3575,6 @@
 				else if(appCount > appList.length){
 					this.$el.find('#selectedActionLabel').css('display','none');
 				}
-				else if(appCount > appList.length){
-					this.$el.find('#selectedActionLabel').css('display','none');
-				}
 			}
 
 			for (let k = 0; k < appList.length; k++) {
@@ -3648,7 +3645,11 @@
 		},
 
 		getUniqueName: function(name) {
-			if (this.findFileEl(name).exists()) {
+			var fileNamesOld = this.files.findIndex(function(el)
+			{
+				return el.name==name;
+			});
+			if (fileNamesOld!=-1) {
 				var numMatch;
 				var parts=name.split('.');
 				var extension = "";
