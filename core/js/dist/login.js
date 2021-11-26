@@ -3393,10 +3393,10 @@ var Dialogs = {
    * @private
    */
   _changeButtonsText: function _changeButtonsText(type, dir) {
-    var copyText = dir === '' ? t('core', 'Copy') : t('core', 'Copy to {folder}', {
+    var copyText = dir === '' ? t('core', 'Copy') : t('core', 'Copy', {
       folder: dir
     });
-    var moveText = dir === '' ? t('core', 'Move') : t('core', 'Move to {folder}', {
+    var moveText = dir === '' ? t('core', 'Move') : t('core', 'Move', {
       folder: dir
     });
     var buttons = jquery__WEBPACK_IMPORTED_MODULE_1___default()('.oc-dialog-buttonrow button');
