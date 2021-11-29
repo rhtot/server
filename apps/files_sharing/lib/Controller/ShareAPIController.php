@@ -219,7 +219,6 @@ class ShareAPIController extends OCSController {
 		}
 
 		$result['mimetype'] = $node->getMimetype();
-		$result['size'] = $node->getSize();
 		$result['has_preview'] = $this->previewManager->isAvailable($node);
 		$result['storage_id'] = $node->getStorage()->getId();
 		$result['storage'] = $node->getStorage()->getCache()->getNumericStorageId();
@@ -431,6 +430,7 @@ class ShareAPIController extends OCSController {
 	 * @param string $expireDate
 	 * @param string $label
 	 * @param string $hideDownload
+	 * @param string $note
 	 *
 	 * @return DataResponse
 	 * @throws NotFoundException
@@ -451,7 +451,8 @@ class ShareAPIController extends OCSController {
 		string $sendPasswordByTalk = null,
 		string $expireDate = '',
 		string $label = '',
-		string $hideDownload = null
+		string $hideDownload = null,
+		string $note = null
 	): DataResponse {
 		$share = $this->shareManager->newShare();
 
@@ -591,6 +592,10 @@ class ShareAPIController extends OCSController {
 			// If we have a label, use it
 			if (!empty($label)) {
 				$share->setLabel($label);
+			}
+
+			if ($note !== null) {
+				$share->setNote($note);
 			}
 
 			if ($sendPasswordByTalk === 'true') {

@@ -11,16 +11,12 @@
  * @author exner104 <59639860+exner104@users.noreply.github.com>
  * @author Frederic Werner <frederic-github@werner-net.work>
  * @author Joas Schilling <coding@schilljs.com>
- * @author John Molakvoæ <skjnldsv@protonmail.com>
  * @author Lukas Reschke <lukas@statuscode.ch>
  * @author Morris Jobke <hey@morrisjobke.de>
- * @author Nicolas SIMIDE <2083596+dems54@users.noreply.github.com>
  * @author Robin Appelman <robin@icewind.nl>
- * @author robottod <83244577+robottod@users.noreply.github.com>
  * @author Roeland Jago Douma <roeland@famdouma.nl>
  * @author rubo77 <github@r.z11.de>
  * @author Stephan Müller <mail@stephanmueller.eu>
- * @author Valdnet <47037905+Valdnet@users.noreply.github.com>
  *
  * @license GNU AGPL version 3 or any later version
  *
@@ -31,13 +27,14 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 namespace OCA\ShareByMail;
 
 use OC\HintException;
@@ -215,7 +212,7 @@ class ShareByMailProvider implements IShareProvider {
 
 		if ($initiatorEMailAddress === null && !$allowPasswordByMail) {
 			throw new \Exception(
-				$this->l->t("We cannot send you the auto-generated password. Please set a valid email address in your personal settings and try again.")
+				$this->l->t("We can't send you the auto-generated password. Please set a valid email address in your personal settings and try again.")
 			);
 		}
 
@@ -330,7 +327,8 @@ class ShareByMailProvider implements IShareProvider {
 			$share->getSendPasswordByTalk(),
 			$share->getHideDownload(),
 			$share->getLabel(),
-			$share->getExpirationDate()
+			$share->getExpirationDate(),
+			$share->getNote()
 		);
 
 		try {
@@ -341,7 +339,8 @@ class ShareByMailProvider implements IShareProvider {
 				$link,
 				$share->getSharedBy(),
 				$share->getSharedWith(),
-				$share->getExpirationDate()
+				$share->getExpirationDate(),
+				$share->getNote()
 			);
 		} catch (HintException $hintException) {
 			$this->logger->logException($hintException, [
@@ -377,7 +376,8 @@ class ShareByMailProvider implements IShareProvider {
 											$link,
 											$initiator,
 											$shareWith,
-											\DateTime $expiration = null) {
+											\DateTime $expiration = null,
+											$note = '') {
 		$initiatorUser = $this->userManager->get($initiator);
 		$initiatorDisplayName = ($initiatorUser instanceof IUser) ? $initiatorUser->getDisplayName() : $initiator;
 		$message = $this->mailer->createMessage();
@@ -388,6 +388,7 @@ class ShareByMailProvider implements IShareProvider {
 			'initiator' => $initiatorDisplayName,
 			'expiration' => $expiration,
 			'shareWith' => $shareWith,
+			'note' => $note
 		]);
 
 		$emailTemplate->setSubject($this->l->t('%1$s shared »%2$s« with you', [$initiatorDisplayName, $filename]));
@@ -395,6 +396,7 @@ class ShareByMailProvider implements IShareProvider {
 		$emailTemplate->addHeading($this->l->t('%1$s shared »%2$s« with you', [$initiatorDisplayName, $filename]), false);
 		$text = $this->l->t('%1$s shared »%2$s« with you.', [$initiatorDisplayName, $filename]);
 
+		$emailTemplate->addBodyText(htmlspecialchars($note), $note);
 		$emailTemplate->addBodyText(
 			htmlspecialchars($text . ' ' . $this->l->t('Click the button below to open it.')),
 			$text
@@ -577,7 +579,7 @@ class ShareByMailProvider implements IShareProvider {
 
 		if ($initiatorEMailAddress === null) {
 			throw new \Exception(
-				$this->l->t("We cannot send you the auto-generated password. Please set a valid email address in your personal settings and try again.")
+				$this->l->t("We can't send you the auto-generated password. Please set a valid email address in your personal settings and try again.")
 			);
 		}
 
@@ -671,7 +673,7 @@ class ShareByMailProvider implements IShareProvider {
 	 * @param \DateTime|null $expirationTime
 	 * @return int
 	 */
-	protected function addShareToDB($itemSource, $itemType, $shareWith, $sharedBy, $uidOwner, $permissions, $token, $password, $sendPasswordByTalk, $hideDownload, $label, $expirationTime) {
+	protected function addShareToDB($itemSource, $itemType, $shareWith, $sharedBy, $uidOwner, $permissions, $token, $password, $sendPasswordByTalk, $hideDownload, $label, $expirationTime, $note = '') {
 		$qb = $this->dbConnection->getQueryBuilder();
 		$qb->insert('share')
 			->setValue('share_type', $qb->createNamedParameter(IShare::TYPE_EMAIL))
@@ -687,7 +689,8 @@ class ShareByMailProvider implements IShareProvider {
 			->setValue('password_by_talk', $qb->createNamedParameter($sendPasswordByTalk, IQueryBuilder::PARAM_BOOL))
 			->setValue('stime', $qb->createNamedParameter(time()))
 			->setValue('hide_download', $qb->createNamedParameter((int)$hideDownload, IQueryBuilder::PARAM_INT))
-			->setValue('label', $qb->createNamedParameter($label));
+			->setValue('label', $qb->createNamedParameter($label))
+			->setValue('note', $qb->createNamedParameter($note));
 
 		if ($expirationTime !== null) {
 			$qb->setValue('expiration', $qb->createNamedParameter($expirationTime, IQueryBuilder::PARAM_DATE));

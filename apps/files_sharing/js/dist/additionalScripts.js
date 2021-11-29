@@ -201,17 +201,41 @@ window.OCP.Collaboration.registerType('file', {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var escape_html__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! escape-html */ "./node_modules/escape-html/index.js");
 /* harmony import */ var escape_html__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(escape_html__WEBPACK_IMPORTED_MODULE_0__);
-/* eslint-disable */
-
-/*
+/**
  * Copyright (c) 2014
  *
- * This file is licensed under the Affero General Public License version 3
- * or later.
+ * @author Arthur Schiwon <blizzz@arthur-schiwon.de>
+ * @author Christoph Wurst <christoph@winzerhof-wurst.at>
+ * @author Daniel Calviño Sánchez <danxuliu@gmail.com>
+ * @author Joas Schilling <coding@schilljs.com>
+ * @author John Molakvoæ <skjnldsv@protonmail.com>
+ * @author Julius Härtl <jus@bitgrid.net>
+ * @author Maxence Lange <maxence@nextcloud.com>
+ * @author Michael Jobst <mjobst+github@tecratech.de>
+ * @author Michael Jobst <mjobst@necls.com>
+ * @author Morris Jobke <hey@morrisjobke.de>
+ * @author Roeland Jago Douma <roeland@famdouma.nl>
+ * @author Samuel <faust64@gmail.com>
+ * @author Vincent Petry <vincent@nextcloud.com>
  *
- * See the COPYING-README file.
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+/* eslint-disable */
 
 
 (function () {
@@ -584,61 +608,13 @@ __webpack_require__.r(__webpack_exports__);
     /**
      * Format a remote address
      *
-    * @param {String} shareWith userid, full remote share, or whatever
-    * @param {String} shareWithDisplayName
-    * @param {String} message
-    * @returns {String} HTML code to display
-    */
+     * @param {String} shareWith userid, full remote share, or whatever
+     * @param {String} shareWithDisplayName
+     * @param {String} message
+     * @returns {String} HTML code to display
+     */
     _formatRemoteShare: function _formatRemoteShare(shareWith, shareWithDisplayName, message) {
-      var parts = OCA.Sharing.Util._REMOTE_OWNER_REGEXP.exec(shareWith); //console.error(parts);
-
-
-      if (!parts || !parts[7]) {
-        // display avatar of the user
-        var avatar = '<span class="avatar" data-username="' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWith) + '" title="' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '"></span>';
-        var hidden = '<span class="receiveData">' + t('files_sharing', 'Received') + '</span> ';
-        return avatar + hidden;
-      }
-
-      var userName = parts[2];
-      var userDomain = parts[4];
-      var server = parts[5];
-      var protocol = parts[6];
-      var serverPath = parts[8] ? parts[7] : ''; // no trailing slash on root
-
-      var tooltip = message + ' ' + userName;
-
-      if (userDomain) {
-        tooltip += '@' + userDomain;
-      }
-
-      if (server) {
-        tooltip += '@' + server.replace(protocol, '') + serverPath;
-      }
-
-      var html = '<span class="remoteAddress" title="' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(tooltip) + '">';
-      html += '<span class="username">' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(userName) + '</span>';
-
-      if (userDomain) {
-        html += '<span class="userDomain">@' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(userDomain) + '</span>';
-      }
-
-      html += '</span> ';
-      return html;
-    },
-
-    /**
-     * Format a remote address
-     *
-    * @param {String} shareWith userid, full remote share, or whatever
-    * @param {String} shareWithDisplayName
-    * @param {String} message
-    * @returns {String} HTML code to display
-    */
-    _formatRemoteSharewith: function _formatRemoteSharewith(shareWith, shareWithDisplayName, message) {
       var parts = OCA.Sharing.Util._REMOTE_OWNER_REGEXP.exec(shareWith);
-
-      console.error(parts);
 
       if (!parts || !parts[7]) {
         // display avatar of the user
@@ -689,7 +665,7 @@ __webpack_require__.r(__webpack_exports__);
         return a.shareWithDisplayName.localeCompare(b.shareWithDisplayName);
       });
       return $.map(recipients, function (recipient) {
-        return _parent._formatRemoteSharewith(recipient.shareWith, recipient.shareWithDisplayName, t('files_sharing', 'Shared with'));
+        return _parent._formatRemoteShare(recipient.shareWith, recipient.shareWithDisplayName, t('files_sharing', 'Shared with'));
       });
     },
 
@@ -956,15 +932,15 @@ module.exports = function (cssWithMappingToString) {
       }
 
       return content;
-    }).join('');
+    }).join("");
   }; // import a list of modules into the list
   // eslint-disable-next-line func-names
 
 
   list.i = function (modules, mediaQuery, dedupe) {
-    if (typeof modules === 'string') {
+    if (typeof modules === "string") {
       // eslint-disable-next-line no-param-reassign
-      modules = [[null, modules, '']];
+      modules = [[null, modules, ""]];
     }
 
     var alreadyImportedModules = {};
