@@ -47,9 +47,9 @@
 				{{ noResultText }}
 			</template>
 		</Multiselect>
-		<p class="sharing-input-subtitle">
+		<!-- <p class="sharing-input-subtitle">
 			{{ t('files_sharing', 'Personal sharing via email') }}
-		</p>
+		</p> -->
 		<!-- Create new share -->
 		<button v-if="canReshare"
 			class="add-new-link-btn"

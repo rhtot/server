@@ -21,7 +21,7 @@
   -->
 
 <template>
-	<li :class="{'sharing-entry--share': share}" class="sharing-entry sharing-entry__link">
+	<li :class="isEmailShareType ? 'email-share-link sharing-entry sharing-entry__link' : 'link-share-link sharing-entry sharing-entry__link'">
 		<Avatar :is-no-user="true"
 			:icon-class="isEmailShareType ? 'avatar-link-share icon-mail-white' : 'avatar-link-share icon-public-white'"
 			class="sharing-entry__avatar" />
@@ -172,7 +172,7 @@
 					@click.prevent="editPermissions">
 					{{ t('files_sharing', 'Advanced permission') }}
 				</ActionButton>
-				<ActionButton v-if="share.canEdit"
+				<ActionButton v-if="share.canEdit && isEmailShareType"
 					icon="icon-mail"
 					:disabled="saving"
 					@click.prevent="editNotes">
