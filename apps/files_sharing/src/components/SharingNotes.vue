@@ -157,7 +157,7 @@ export default {
 					this.hideDownload = this.share.hideDownload.toString()
 				}
 
-				const share = await this.createShare({
+				await this.createShare({
 					path,
 					shareType: this.optionValues.shareType,
 					shareWith: this.optionValues.shareWith,
@@ -165,13 +165,14 @@ export default {
 					sendPasswordByTalk: this.sendPasswordByTalk,
 					expireDate: this.share.expireDate,
 					hideDownload: this.hideDownload,
+					note: this.shareNote,
 					permissions: this.fileInfo.sharePermissions & OC.getCapabilities().files_sharing.default_permissions & this.share.permissions,
 				})
 
 				// add notes to share if any
-				this.share = share
-				this.share.note = this.shareNote
-				this.queueUpdate('note')
+				// this.share = share
+				// this.share.note = this.shareNote
+				// this.queueUpdate('note')
 
 				// reset the search string when done
 				// FIXME: https://github.com/shentao/vue-multiselect/issues/633

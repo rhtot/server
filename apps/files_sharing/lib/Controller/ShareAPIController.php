@@ -430,6 +430,7 @@ class ShareAPIController extends OCSController {
 	 * @param string $expireDate
 	 * @param string $label
 	 * @param string $hideDownload
+	 * @param string $note
 	 *
 	 * @return DataResponse
 	 * @throws NotFoundException
@@ -450,7 +451,8 @@ class ShareAPIController extends OCSController {
 		string $sendPasswordByTalk = null,
 		string $expireDate = '',
 		string $label = '',
-		string $hideDownload = null
+		string $hideDownload = null,
+		string $note = null
 	): DataResponse {
 		$share = $this->shareManager->newShare();
 
@@ -590,6 +592,10 @@ class ShareAPIController extends OCSController {
 			// If we have a label, use it
 			if (!empty($label)) {
 				$share->setLabel($label);
+			}
+
+			if ($note !== null) {
+				$share->setNote($note);
 			}
 
 			if ($sendPasswordByTalk === 'true') {
