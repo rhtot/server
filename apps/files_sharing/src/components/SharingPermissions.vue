@@ -84,6 +84,13 @@
 					{{ t('files_sharing', 'Advanced') }}<span v-bind:class="['sort-indicator',{ 'icon-triangle-s':showAdLink},{'icon-triangle-n':!showAdLink}]"></span>
 				</label>
 				<div v-show="showAdLink">
+					<input
+						v-if="isLinkShare"
+						ref='label'
+						:class="{ error: errors.label }"
+						:disabled="saving"
+						v-model="shareLabel" />
+
 					<ActionCheckbox :checked.sync="share.hideDownload"
 						:disabled="saving"
 						@change="addHideDownload">
@@ -294,6 +301,8 @@ export default {
 			showAdLink: true,
 			sendPasswordByTalk: null,
 			hideDownload: null,
+
+			shareLabel: this.share.newLabel || this.share.label || '',
 		}
 	},
 
@@ -414,6 +423,10 @@ export default {
 			}
 		},
 
+		isLinkShare() {
+			return this.SHARE_TYPES.SHARE_TYPE_LINK === this.share.type
+		},
+
 	},
 
 	methods: {
@@ -471,6 +484,8 @@ export default {
 		confirmSharing() {
 			this.loading = true
 
+			this.share.label = this.shareLabel.trim()
+
 			if (this.share.sendPasswordByTalk) {
 				this.sendPasswordByTalk = this.share.sendPasswordByTalk.toString()
 			}
@@ -479,15 +494,15 @@ export default {
 				this.hideDownload = this.share.hideDownload.toString()
 			}
 
-			const result = this.updateShare(this.share.id, {
+			this.updateShare(this.share.id, {
 				permissions: this.share.permissions,
 				hideDownload: this.hideDownload,
 				password: this.share.password,
 				expireDate: this.share.expireDate,
+				label: this.share.label,
 				sendPasswordByTalk: this.sendPasswordByTalk,
 			})
 			// this.$emit('add:share', this.share)
-			console.debug('updated share', result)
 			this.loading = true
 			this.$store.commit('addCurrentTab', 'default')
 		},
