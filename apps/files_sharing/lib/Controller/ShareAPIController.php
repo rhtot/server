@@ -510,6 +510,10 @@ class ShareAPIController extends OCSController {
 			$share->setSharedWith($shareWith);
 			$share->setPermissions($permissions);
 
+			if ($note !== null) {
+				$share->setNote($note);
+			}
+
 			if ($expireDate !== '') {
 				try {
 					$expireDate = $this->parseDate($expireDate);
@@ -529,6 +533,10 @@ class ShareAPIController extends OCSController {
 			}
 			$share->setSharedWith($shareWith);
 			$share->setPermissions($permissions);
+
+			if ($note !== null) {
+				$share->setNote($note);
+			}
 
 			if ($expireDate !== '') {
 				try {
@@ -626,6 +634,11 @@ class ShareAPIController extends OCSController {
 
 			$share->setSharedWith($shareWith);
 			$share->setPermissions($permissions);
+
+			if ($note !== null) {
+				$share->setNote($note);
+			}
+
 			if ($expireDate !== '') {
 				try {
 					$expireDate = $this->parseDate($expireDate);
@@ -645,6 +658,11 @@ class ShareAPIController extends OCSController {
 
 			$share->setSharedWith($shareWith);
 			$share->setPermissions($permissions);
+
+			if ($note !== null) {
+				$share->setNote($note);
+			}
+			
 			if ($expireDate !== '') {
 				try {
 					$expireDate = $this->parseDate($expireDate);
