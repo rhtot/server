@@ -53,6 +53,15 @@ interface IUser {
 	public function getDisplayName();
 
 	/**
+	 * get the display name for the other user, if no specific display name is set it will fallback to the user id
+	 *
+	 * @return string
+	 * @since 8.0.0
+	 */
+	public function getDisplayNameOtherUser();
+
+
+	/**
 	 * set the display name for the user
 	 *
 	 * @param string $displayName

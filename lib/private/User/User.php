@@ -152,7 +152,7 @@ class User implements IUser {
 		return $this->displayName;
 	}
 
-/**
+	/**
 	 * get the display name for other user, if no specific display name is set it will fallback to the user id
 	 *
 	 * @return string
