@@ -70,7 +70,7 @@ const shareWithTitle = function(share) {
 	} else {
 		return t(
 			'files_sharing',
-			'Shared with you by {owner}',
+			'Shared by {owner}',
 			{ owner: share.ownerDisplayName },
 			undefined,
 			{ escape: false }
