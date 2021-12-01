@@ -87,6 +87,7 @@
 					<input
 						v-if="isLinkShare"
 						ref='label'
+						placeholder="Share label"
 						:class="{ error: errors.label }"
 						:disabled="saving"
 						v-model="shareLabel" />
