@@ -26,12 +26,14 @@
 			:icon-class="isEmailShareType ? 'avatar-link-share icon-mail-white' : 'avatar-link-share icon-public-white'"
 			class="sharing-entry__avatar" />
 		<div class="sharing-entry__desc">
-			<!-- <h5 :title="title">
-				{{ title }}
-			</h5>
-			<p v-if="subtitle">
-				{{ subtitle }}
-			</p> -->
+			<div v-if="!share">
+				<h5 :title="title">
+					{{ title }}
+				</h5>
+				<p v-if="subtitle">
+					{{ subtitle }}
+				</p>
+			</div>
 
 			<div id="app">
 				<template v-if="share">
@@ -305,7 +307,7 @@ export default {
 							label: this.share.label.trim(),
 						})
 					}
-					return t('files_sharing', 'Share link ({label})', {
+					return t('files_sharing', 'Link "{label}"', {
 						label: this.share.label.trim(),
 					})
 				}
