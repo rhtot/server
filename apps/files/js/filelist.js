@@ -3532,7 +3532,7 @@
 		*/
 		resizeFileActionMenu: function() {
 			const appList = this.$el.find('.filesSelectionMenu ul li:not(.hidden-action)');
-			const appListWidth = 250;
+			const appListWidth = 179;
 			const checkWidth = Math.ceil(this.$el.find('#headerSelection').outerWidth());
 			const headerNameWidth = Math.ceil(this.$el.find('#headerName').outerWidth());
 			const actionWidth = Math.ceil(this.$el.find('#selectedActionLabel').outerWidth());
