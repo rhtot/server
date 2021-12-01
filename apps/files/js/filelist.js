@@ -3532,11 +3532,17 @@
 		*/
 		resizeFileActionMenu: function() {
 			const appList = this.$el.find('.filesSelectionMenu ul li:not(.hidden-action)');
-			const headerWidth = this.$el.find('#filestable thead').outerWidth();
-			const checkWidth = this.$el.find('#headerSelection').outerWidth();
-			const headerNameWidth = this.$el.find('#headerName').outerWidth();
-			const actionWidth = this.$el.find('#selectedActionLabel').outerWidth();
-			const allLabelWidth = this.$el.find('#allLabel').not('#allLabel:hidden').outerWidth();
+			const appListWidth = 250;
+			const checkWidth = Math.ceil(this.$el.find('#headerSelection').outerWidth());
+			const headerNameWidth = Math.ceil(this.$el.find('#headerName').outerWidth());
+			const actionWidth = Math.ceil(this.$el.find('#selectedActionLabel').outerWidth());
+			const allLabelWidth = Math.ceil(this.$el.find('#allLabel').not('#allLabel:hidden').outerWidth());
+			let headerWidth = Math.ceil(this.$el.find('#filestable thead').outerWidth());
+
+			if($('#app-sidebar-vue').length>0){
+				headerWidth = headerWidth - Math.ceil($('#app-sidebar-vue').outerWidth());
+			}
+
 			var availableWidth;
 			if(!allLabelWidth){
 				availableWidth = headerWidth - (checkWidth + headerNameWidth);
@@ -3545,16 +3551,17 @@
 				availableWidth = headerWidth - (checkWidth + allLabelWidth+ headerNameWidth);
 			}
 
-			let appCount = Math.floor((availableWidth / $(appList).width()));
+			let appCount = Math.floor((availableWidth / appListWidth));
 
 			if(appCount < appList.length) {
+
 				if(!allLabelWidth){
 					availableWidth = headerWidth - (checkWidth + headerNameWidth + actionWidth);
 				}
 				else{
 					availableWidth = headerWidth - (checkWidth + allLabelWidth+ headerNameWidth + actionWidth);
 				}
-					appCount = Math.floor((availableWidth / $(appList).width()));
+					appCount = Math.floor((availableWidth / appListWidth));
 			}
 
 			var summary = this._selectionSummary.summary;
