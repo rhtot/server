@@ -838,7 +838,8 @@ class Manager implements IManager {
 							$share->getSharedBy(),
 							$emailAddress,
 							$share->getExpirationDate(),
-							$share->getNote()
+							$share->getNote(),
+							$user->getDisplayNameOtherUser()
 						);
 						$this->logger->debug('Sent share notification to ' . $emailAddress . ' for share with ID ' . $share->getId(), ['app' => 'share']);
 					} else {
@@ -873,7 +874,9 @@ class Manager implements IManager {
 											$initiator,
 											$shareWith,
 											\DateTime $expiration = null,
-											$note = null) {
+											$note = null,
+											$shareWithDisplayName
+											) {
 		$initiatorUser = $this->userManager->get($initiator);
 		$initiatorDisplayName = ($initiatorUser instanceof IUser) ? $initiatorUser->getDisplayName() : $initiator;
 
@@ -885,6 +888,7 @@ class Manager implements IManager {
 			'initiator' => $initiatorDisplayName,
 			'expiration' => $expiration,
 			'shareWith' => $shareWith,
+			'shareWithDisplayName' => $shareWithDisplayName
 		]);
 
 		$emailTemplate->setSubject($l->t('%1$s shared »%2$s« with you', [$initiatorDisplayName, $filename]));
