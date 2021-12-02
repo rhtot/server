@@ -26,7 +26,7 @@
 			:icon-class="isEmailShareType ? 'avatar-link-share icon-mail-white' : 'avatar-link-share icon-public-white'"
 			class="sharing-entry__avatar" />
 		<div class="sharing-entry__desc">
-			<div v-if="!share">
+			<div v-if="!share.canEdit">
 				<h5 :title="title">
 					{{ title }}
 				</h5>

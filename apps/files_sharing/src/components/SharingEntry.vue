@@ -33,7 +33,7 @@
 			v-tooltip.auto="tooltip"
 			:href="share.shareWithLink"
 			class="sharing-entry__desc">
-			<div v-if="!share">
+			<div v-if="!share.canEdit">
 				<h5>{{ title }}<span v-if="!isUnique" class="sharing-entry__desc-unique"> ({{ share.shareWithDisplayNameUnique }})</span></h5>
 				<p v-if="hasStatus">
 					<span>{{ share.status.icon || '' }}</span>
