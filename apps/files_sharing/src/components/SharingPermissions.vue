@@ -308,9 +308,6 @@ export default {
 	},
 
 	computed: {
-		shareLabelPlaceholder() {
-			return t('files_sharing', 'Share label')
-		},
 		...mapGetters({
 			fromInput: 'getFromInput',
 			optionValues: 'getOption'
@@ -431,6 +428,9 @@ export default {
 			return this.SHARE_TYPES.SHARE_TYPE_LINK === this.share.type
 		},
 
+		shareLabelPlaceholder() {
+			return t('files_sharing', 'Share label')
+		},
 	},
 
 	methods: {
