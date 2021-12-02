@@ -34,7 +34,7 @@
 				<div>
 					<textarea
 						ref="note"
-						placeholder="Your message..."
+						:placeholder="notePlaceholder"
 						v-model="shareNote"
 						class="sharing-note"
 						:disabled="saving" />
@@ -116,6 +116,10 @@ export default {
 		randomId() {
 			return Math.random().toString(27).substr(2)
 		},
+
+		notePlaceholder() {
+			return t('files_sharing', 'Your message')
+		}
 	},
 
 	methods: {

@@ -87,7 +87,7 @@
 					<input
 						v-if="isLinkShare"
 						ref='label'
-						placeholder="Share label"
+						:placeholder="shareLabelPlaceholder"
 						:class="{ error: errors.label }"
 						:disabled="saving"
 						v-model="shareLabel" />
@@ -308,6 +308,9 @@ export default {
 	},
 
 	computed: {
+		shareLabelPlaceholder() {
+			return t('files_sharing', 'Share label')
+		},
 		...mapGetters({
 			fromInput: 'getFromInput',
 			optionValues: 'getOption'
