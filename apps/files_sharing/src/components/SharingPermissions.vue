@@ -101,19 +101,28 @@
 					<!-- password -->
 					<ActionCheckbox :checked.sync="isPasswordProtected"
 						:disabled="config.enforcePasswordForPublicLink || saving"
-						class="share-link-password-checkbox">
+						class="share-link-password-checkbox"
+						@uncheck="onPasswordDisable">
 						{{ config.enforcePasswordForPublicLink
 							? t('files_sharing', 'Password protection (enforced)')
 							: t('files_sharing', 'Password protect') }}
 					</ActionCheckbox>
 					<ActionInput v-if="isPasswordProtected"
 						ref="password"
+						v-tooltip.auto="{
+							content: errors.password,
+							show: errors.password,
+							trigger: 'manual',
+							defaultContainer: '#app-sidebar'
+						}"
+						class="share-link-password"
+						:class="{ error: errors.password}"
 						icon=""
 						:disabled="saving"
 						:required="config.enforcePasswordForPublicLink"
-						:value="hasUnsavedPassword ? share.newPassword : '***************'"
+						:value="hasUnsavedPassword ? '***************' : share.newPassword"
 						autocomplete="new-password"
-						:type="hasUnsavedPassword ? 'text': 'password'">
+						@change="changePassword">
 						{{ t('files_sharing', 'Enter a password') }}
 					</ActionInput>
 					<div v-if="isPasswordProtected"
@@ -132,14 +141,21 @@
 
 					<!-- expiration date -->
 					<ActionCheckbox
-						v-if="canHaveExpirationDate"
-						:checked.sync="hasExpirationDate">
+						:disabled="config.isDefaultInternalExpireDateEnforced || saving"
+						:checked.sync="hasExpirationDate"
+						@uncheck="onExpirationDisable">
 						{{ config.isDefaultInternalExpireDateEnforced
 							? t('files_sharing', 'Expiration date enforced')
 							: t('files_sharing', 'Set expiration date') }}
 					</ActionCheckbox>
 					<ActionInput v-if="hasExpirationDate"
 						ref="expireDate"
+						v-tooltip.auto="{
+							content: errors.expireDate,
+							show: errors.expireDate,
+							trigger: 'manual'
+						}"
+						:class="{ error: errors.expireDate}"
 						:disabled="saving"
 						:first-day-of-week="firstDay"
 						:lang="lang"
@@ -147,6 +163,7 @@
 						value-type="format"
 						icon="icon-calendar-dark"
 						type="date"
+						:disabled-date="disabledDate"
 						@update:value="addExpirationDate">
 						{{ t('files_sharing', 'Enter a date') }}
 					</ActionInput>
@@ -211,14 +228,21 @@
 
 					<!-- expiration date -->
 					<ActionCheckbox
-						v-if="canHaveExpirationDate"
-						:checked.sync="hasExpirationDate">
+						:disabled="config.isDefaultInternalExpireDateEnforced || saving"
+						:checked.sync="hasExpirationDate"
+						@uncheck="onExpirationDisable">
 						{{ config.isDefaultInternalExpireDateEnforced
 							? t('files_sharing', 'Expiration date enforced')
 							: t('files_sharing', 'Set expiration date') }}
 					</ActionCheckbox>
 					<ActionInput v-if="hasExpirationDate"
 						ref="expireDate"
+						v-tooltip.auto="{
+							content: errors.expireDate,
+							show: errors.expireDate,
+							trigger: 'manual'
+						}"
+						:class="{ error: errors.expireDate}"
 						:disabled="saving"
 						:first-day-of-week="firstDay"
 						:lang="lang"
@@ -226,6 +250,7 @@
 						value-type="format"
 						icon="icon-calendar-dark"
 						type="date"
+						:disabled-date="disabledDate"
 						@update:value="addExpirationDate">
 						{{ t('files_sharing', 'Enter a date') }}
 					</ActionInput>
@@ -266,8 +291,8 @@ import Tooltip from '@nextcloud/vue/dist/Directives/Tooltip'
 
 import SharesMixin from '../mixins/SharesMixin'
 import ShareTypes from '../mixins/ShareTypes'
-import GeneratePassword from '../utils/GeneratePassword'
-import Vue from 'vue'
+// import GeneratePassword from '../utils/GeneratePassword'
+// import Vue from 'vue'
 import { mapGetters } from 'vuex'
 import ShareRequests from '../mixins/ShareRequests'
 
@@ -302,6 +327,7 @@ export default {
 			showAdLink: true,
 			sendPasswordByTalk: null,
 			hideDownload: null,
+			showPasswordInput: false,
 
 			shareLabel: this.share.newLabel || this.share.label || '',
 		}
@@ -362,7 +388,10 @@ export default {
 		// if newPassword exists, but is empty, it means
 		// the user deleted the original password
 		hasUnsavedPassword() {
-			return this.share.newPassword !== undefined
+			console.debug('this.share.password', this.share.password)
+			console.debug('this.share.newPassword', this.share.newPassword)
+			console.debug("this.share.password !== ''", this.share.password !== '')
+			return this.share.password !== '' // this.share.newPassword !== undefined ||
 		},
 
 		/**
@@ -396,12 +425,18 @@ export default {
 		 */
 		isPasswordProtected: {
 			get() {
-				return this.config.enforcePasswordForPublicLink || !!this.share.password
+				console.debug('this.showPasswordInput ', this.showPasswordInput)
+				return this.config.enforcePasswordForPublicLink || !!this.share.password || this.showPasswordInput
 			},
 			async set(enabled) {
 				// TODO: directly save after generation to make sure the share is always protected
-				Vue.set(this.share, 'password', enabled ? await GeneratePassword() : '')
-				Vue.set(this.share, 'newPassword', this.share.password)
+				this.showPasswordInput = !this.showPasswordInput
+				if (this.share.password !== '') {
+					this.showPasswordInput = true
+				}
+				console.debug('this.showPasswordInput set ', this.showPasswordInput)
+				// Vue.set(this.share, 'password', enabled ? '' : '')
+				// Vue.set(this.share, 'newPassword', this.share.password)
 			},
 		},
 
@@ -434,6 +469,17 @@ export default {
 	},
 
 	methods: {
+		changePassword(event) {
+			console.debug('newPassword ', this.share.newPassword)
+			this.share.password = event.target.value
+		},
+
+		onPasswordDisable() {
+			this.share.password = ''
+
+			// reset password state after sync
+			this.$delete(this.share, 'newPassword')
+		},
 		addPasswordProtectedByTalkChange(event) {
 			this.share.sendPasswordByTalk = event.target.checked
 		},
@@ -486,6 +532,8 @@ export default {
 		},
 
 		confirmSharing() {
+			console.debug('password : ', this.share.password)
+			console.debug('new password : ', this.share.newPassword)
 			this.loading = true
 
 			this.share.label = this.shareLabel.trim()
