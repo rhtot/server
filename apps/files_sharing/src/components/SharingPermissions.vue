@@ -127,7 +127,7 @@
 					</ActionInput>
 					<div v-if="isPasswordProtected"
 						class="password-message">
-						{{ t('files_sharing', 'The password is not send with the email to maintain confidentiality.') }}
+						{{ t('files_sharing', 'The password must contain 10 characters and will not be sent with the mail to maintain confidentiality.') }}
 					</div>
 
 					<!-- password protected by Talk -->

@@ -1183,8 +1183,8 @@ class ShareAPIController extends OCSController {
 			}
 
 			if ($password !== '') {
-				if (strlen($password) < 10) {
-					throw new OCSNotFoundException($this->l->t('Password needs to be at least 10 characters long'));
+				if (strlen($password.'') < 10) {
+					throw new OCSForbiddenException($this->l->t('Password needs to be at least 10 characters long'));
 				}
 				$share->setPassword($password);
 			}
