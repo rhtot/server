@@ -152,7 +152,7 @@
 						:disabled="saving"
 						:first-day-of-week="firstDay"
 						:lang="lang"
-						:value="share.expireDate"
+						:value="share.expireDate || this.config.defaultInternalExpirationDateString"
 						value-type="format"
 						icon="icon-calendar-dark"
 						type="date"
@@ -231,7 +231,7 @@
 						:disabled="saving"
 						:first-day-of-week="firstDay"
 						:lang="lang"
-						:value="share.expireDate"
+						:value="share.expireDate || this.config.defaultInternalExpirationDateString"
 						value-type="format"
 						icon="icon-calendar-dark"
 						type="date"
@@ -389,7 +389,7 @@ export default {
 		 */
 		hasExpirationDate: {
 			get() {
-				return this.config.isDefaultInternalExpireDateEnforced || !!this.share.expireDate
+				return this.config.isDefaultInternalExpireDateEnforced || !!this.config.defaultInternalExpirationDateString || !!this.share.expireDate
 			},
 			set(enabled) {
 				this.share.expireDate = enabled
