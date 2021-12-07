@@ -875,7 +875,7 @@ class Manager implements IManager {
 											$shareWith,
 											\DateTime $expiration = null,
 											$note = null,
-											$shareWithDisplayName
+											$shareWithDisplayName=null
 											) {
 		$initiatorUser = $this->userManager->get($initiator);
 		$initiatorDisplayName = ($initiatorUser instanceof IUser) ? $initiatorUser->getDisplayName() : $initiator;
