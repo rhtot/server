@@ -141,21 +141,14 @@
 
 					<!-- expiration date -->
 					<ActionCheckbox
-						:disabled="config.isDefaultInternalExpireDateEnforced || saving"
-						:checked.sync="hasExpirationDate"
-						@uncheck="onExpirationDisable">
+						v-if="canHaveExpirationDate"
+						:checked.sync="hasExpirationDate">
 						{{ config.isDefaultInternalExpireDateEnforced
 							? t('files_sharing', 'Expiration date enforced')
 							: t('files_sharing', 'Set expiration date') }}
 					</ActionCheckbox>
 					<ActionInput v-if="hasExpirationDate"
 						ref="expireDate"
-						v-tooltip.auto="{
-							content: errors.expireDate,
-							show: errors.expireDate,
-							trigger: 'manual'
-						}"
-						:class="{ error: errors.expireDate}"
 						:disabled="saving"
 						:first-day-of-week="firstDay"
 						:lang="lang"
@@ -163,7 +156,6 @@
 						value-type="format"
 						icon="icon-calendar-dark"
 						type="date"
-						:disabled-date="disabledDate"
 						@update:value="addExpirationDate">
 						{{ t('files_sharing', 'Enter a date') }}
 					</ActionInput>
@@ -228,21 +220,14 @@
 
 					<!-- expiration date -->
 					<ActionCheckbox
-						:disabled="config.isDefaultInternalExpireDateEnforced || saving"
-						:checked.sync="hasExpirationDate"
-						@uncheck="onExpirationDisable">
+						v-if="canHaveExpirationDate"
+						:checked.sync="hasExpirationDate">
 						{{ config.isDefaultInternalExpireDateEnforced
 							? t('files_sharing', 'Expiration date enforced')
 							: t('files_sharing', 'Set expiration date') }}
 					</ActionCheckbox>
 					<ActionInput v-if="hasExpirationDate"
 						ref="expireDate"
-						v-tooltip.auto="{
-							content: errors.expireDate,
-							show: errors.expireDate,
-							trigger: 'manual'
-						}"
-						:class="{ error: errors.expireDate}"
 						:disabled="saving"
 						:first-day-of-week="firstDay"
 						:lang="lang"
@@ -250,7 +235,6 @@
 						value-type="format"
 						icon="icon-calendar-dark"
 						type="date"
-						:disabled-date="disabledDate"
 						@update:value="addExpirationDate">
 						{{ t('files_sharing', 'Enter a date') }}
 					</ActionInput>
@@ -388,9 +372,6 @@ export default {
 		// if newPassword exists, but is empty, it means
 		// the user deleted the original password
 		hasUnsavedPassword() {
-			console.debug('this.share.password', this.share.password)
-			console.debug('this.share.newPassword', this.share.newPassword)
-			console.debug("this.share.password !== ''", this.share.password !== '')
 			return this.share.password !== '' // this.share.newPassword !== undefined ||
 		},
 
@@ -425,7 +406,6 @@ export default {
 		 */
 		isPasswordProtected: {
 			get() {
-				console.debug('this.showPasswordInput ', this.showPasswordInput)
 				return this.config.enforcePasswordForPublicLink || !!this.share.password || this.showPasswordInput
 			},
 			async set(enabled) {
@@ -434,7 +414,6 @@ export default {
 				if (this.share.password !== '') {
 					this.showPasswordInput = true
 				}
-				console.debug('this.showPasswordInput set ', this.showPasswordInput)
 				// Vue.set(this.share, 'password', enabled ? '' : '')
 				// Vue.set(this.share, 'newPassword', this.share.password)
 			},
@@ -532,8 +511,6 @@ export default {
 		},
 
 		confirmSharing() {
-			console.debug('password : ', this.share.password)
-			console.debug('new password : ', this.share.newPassword)
 			this.loading = true
 
 			this.share.label = this.shareLabel.trim()
