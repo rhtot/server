@@ -114,8 +114,7 @@ class MailPlugin implements ISearchPlugin {
 			[
 				'limit' => $limit,
 				'offset' => $offset,
-				'enumeration' => (bool) $this->shareeEnumeration,
-				'fullmatch' => (bool) $this->shareeEnumerationFullMatch,
+				'wildcard' => $this->shareeEnumeration,
 			]
 		);
 		$lowerSearch = strtolower($search);
