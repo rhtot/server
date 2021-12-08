@@ -15714,7 +15714,9 @@ var width = margin * 20;
                 _this3.logger.debug('Created new file', fileInfo);
 
                 _context2.next = 11;
-                return fileList === null || fileList === void 0 ? void 0 : fileList.addAndFetchFileInfo(_this3.name);
+                return fileList === null || fileList === void 0 ? void 0 : fileList.addAndFetchFileInfo(_this3.name, undefined, {
+                  scrollTo: true
+                });
 
               case 11:
                 fileList.rename(_this3.name);
