@@ -380,7 +380,7 @@ export default {
 		 */
 		hasExpirationDate: {
 			get() {
-				return this.config.isDefaultInternalExpireDateEnforced || !!this.config.defaultInternalExpirationDateString || !!this.share.expireDate
+				return this.config.isDefaultInternalExpireDateEnforced || !!this.share.expireDate
 			},
 			set(enabled) {
 				this.share.expireDate = enabled
