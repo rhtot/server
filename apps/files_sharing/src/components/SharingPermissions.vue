@@ -109,20 +109,12 @@
 					</ActionCheckbox>
 					<ActionInput v-if="isPasswordProtected"
 						ref="password"
-						v-tooltip.auto="{
-							content: errors.password,
-							show: errors.password,
-							trigger: 'manual',
-							defaultContainer: '#app-sidebar'
-						}"
-						class="share-link-password"
-						:class="{ error: errors.password}"
 						icon=""
 						:disabled="saving"
 						:required="config.enforcePasswordForPublicLink"
-						:value="hasUnsavedPassword ? '***************' : share.newPassword"
+						:value="hasUnsavedPassword ? share.newPassword : '***************'"
 						autocomplete="new-password"
-						@change="changePassword">
+						:type="hasUnsavedPassword ? 'text': 'password'">
 						{{ t('files_sharing', 'Enter a password') }}
 					</ActionInput>
 					<div v-if="isPasswordProtected"
@@ -275,8 +267,8 @@ import Tooltip from '@nextcloud/vue/dist/Directives/Tooltip'
 
 import SharesMixin from '../mixins/SharesMixin'
 import ShareTypes from '../mixins/ShareTypes'
-// import GeneratePassword from '../utils/GeneratePassword'
-// import Vue from 'vue'
+import GeneratePassword from '../utils/GeneratePassword'
+import Vue from 'vue'
 import { mapGetters } from 'vuex'
 import ShareRequests from '../mixins/ShareRequests'
 
@@ -311,7 +303,6 @@ export default {
 			showAdLink: true,
 			sendPasswordByTalk: null,
 			hideDownload: null,
-			showPasswordInput: false,
 
 			shareLabel: this.share.newLabel || this.share.label || '',
 		}
@@ -372,7 +363,7 @@ export default {
 		// if newPassword exists, but is empty, it means
 		// the user deleted the original password
 		hasUnsavedPassword() {
-			return this.share.password !== '' // this.share.newPassword !== undefined ||
+			return this.share.newPassword !== undefined
 		},
 
 		/**
@@ -406,16 +397,12 @@ export default {
 		 */
 		isPasswordProtected: {
 			get() {
-				return this.config.enforcePasswordForPublicLink || !!this.share.password || this.showPasswordInput
+				return this.config.enforcePasswordForPublicLink || !!this.share.password
 			},
 			async set(enabled) {
 				// TODO: directly save after generation to make sure the share is always protected
-				this.showPasswordInput = !this.showPasswordInput
-				if (this.share.password !== '') {
-					this.showPasswordInput = true
-				}
-				// Vue.set(this.share, 'password', enabled ? '' : '')
-				// Vue.set(this.share, 'newPassword', this.share.password)
+				Vue.set(this.share, 'password', enabled ? await GeneratePassword() : '')
+				Vue.set(this.share, 'newPassword', this.share.password)
 			},
 		},
 
@@ -448,11 +435,6 @@ export default {
 	},
 
 	methods: {
-		changePassword(event) {
-			console.debug('newPassword ', this.share.newPassword)
-			this.share.password = event.target.value
-		},
-
 		onPasswordDisable() {
 			this.share.password = ''
 
