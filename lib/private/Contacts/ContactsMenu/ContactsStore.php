@@ -272,9 +272,13 @@ class ContactsStore implements IContactsStore {
 				return null;
 		}
 
-		$contacts = $this->contactsManager->search($shareWith, $filter, [
+		$userId = $user->getUID();
+		$allContacts = $this->contactsManager->search($shareWith, $filter, [
 			'strict_search' => true,
 		]);
+		$contacts = array_filter($allContacts, function ($contact) use ($userId) {
+			return $contact['UID'] !== $userId;
+		});
 		$match = null;
 
 		foreach ($contacts as $contact) {
