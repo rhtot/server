@@ -103,6 +103,12 @@ class UserPlugin implements ISearchPlugin {
 		$users = [];
 		$hasMoreResults = false;
 
+		// Hotfix: with sharee enumeration disabled users shall be only searched by email anyways in this environment,
+		// so for now return just empty results as those are also handled by the MailPlugin
+		$type = new SearchResultType('users');
+		$searchResult->addResultSet($type, $result['wide'], $result['exact']);
+		return false;
+
 		$currentUserId = $this->userSession->getUser()->getUID();
 		$currentUserGroups = $this->groupManager->getUserGroupIds($this->userSession->getUser());
 		if ($this->shareWithGroupOnly || $this->shareeEnumerationInGroupOnly) {
