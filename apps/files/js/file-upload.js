@@ -629,7 +629,7 @@ OC.Uploader.prototype = _.extend({
 			var original = fileInfo;
 			var replacement = file;
 			original.directory = original.path;
-			OC.dialogs.fileexists(fileUpload, original, replacement, self);
+			OC.dialogs.fileexistsConflictPreDlg(fileUpload, original, replacement, self);
 		});
 	},
 	/**
@@ -909,6 +909,7 @@ OC.Uploader.prototype = _.extend({
 				self.onSkip(conflictData);
 			}
 		});
+		OC.conflictsData = null; // set to null once upload done
 	},
 
 	/**
