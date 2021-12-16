@@ -74,14 +74,6 @@
 			<filter>OCA\DAV\CalDAV\Activity\Filter\Todo</filter>
 			<filter>OCA\DAV\CardDAV\Activity\Filter</filter>
 		</filters>
-
-		<providers>
-			<provider>OCA\DAV\CalDAV\Activity\Provider\Calendar</provider>
-			<provider>OCA\DAV\CalDAV\Activity\Provider\Event</provider>
-			<provider>OCA\DAV\CalDAV\Activity\Provider\Todo</provider>
-			<provider>OCA\DAV\CardDAV\Activity\Provider\Addressbook</provider>
-			<provider>OCA\DAV\CardDAV\Activity\Provider\Card</provider>
-		</providers>
 	</activity>
 
 	<public>
