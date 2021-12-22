@@ -114,12 +114,13 @@
 						:required="config.enforcePasswordForPublicLink"
 						:value="hasUnsavedPassword ? share.newPassword : '***************'"
 						autocomplete="new-password"
+						@update:value="onPasswordChange"
 						:type="hasUnsavedPassword ? 'text': 'password'">
 						{{ t('files_sharing', 'Enter a password') }}
 					</ActionInput>
 					<div v-if="isPasswordProtected"
 						class="password-message">
-						{{ t('files_sharing', 'The password must contain 10 characters and will not be sent with the mail to maintain confidentiality.') }}
+						{{ t('files_sharing', 'The password is not sent with the email to maintain confidentiality.') }}
 					</div>
 
 					<!-- password protected by Talk -->
@@ -435,9 +436,22 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * Update newPassword values
+		 * of share. If password is set but not newPassword
+		 * then the user did not changed the password
+		 * If both co-exists, the password have changed and
+		 * we show it in plain text.
+		 * Then on submit (or menu close), we sync it.
+		 * @param {string} password the changed password
+		 */
+		onPasswordChange(password) {
+			console.debug('new password', password)
+			this.$set(this.share, 'newPassword', password)
+		},
+
 		onPasswordDisable() {
 			this.share.password = ''
-
 			// reset password state after sync
 			this.$delete(this.share, 'newPassword')
 		},
@@ -488,6 +502,7 @@ export default {
 		},
 
 		nextSharing() {
+			console.debug('next sharing', this.share)
 			this.$store.commit('addShare', this.share)
 			this.$store.commit('addCurrentTab', 'notes')
 		},
@@ -503,6 +518,10 @@ export default {
 
 			if (this.share.hideDownload) {
 				this.hideDownload = this.share.hideDownload.toString()
+			}
+
+			if (this.share.newPassword !== undefined) {
+				this.share.password = this.share.newPassword.trim()
 			}
 
 			this.updateShare(this.share.id, {

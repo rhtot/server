@@ -161,6 +161,10 @@ export default {
 					this.hideDownload = this.share.hideDownload.toString()
 				}
 
+				if (this.share.newPassword !== undefined) {
+					this.share.password = this.share.newPassword.trim()
+				}
+
 				await this.createShare({
 					path,
 					shareType: this.optionValues.shareType,

@@ -73,6 +73,7 @@ window.addEventListener('DOMContentLoaded', function() {
 			},
 			destroy() {
 				TabInstance.$destroy()
+				store.commit('addCurrentTab', 'default')
 				TabInstance = null
 			},
 		}))
