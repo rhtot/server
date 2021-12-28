@@ -32,39 +32,50 @@
 	<h2><?php p($l->t('No entries found in this folder')); ?></h2>
 	<p></p>
 </div>
-<table class="files-filestable list-container <?php p($_['showgridview'] ? 'view-grid' : '') ?>" data-allow-public-upload="<?php p($_['publicUploadEnabled'])?>" data-preview-x="250" data-preview-y="250">
+<table id="filestable" class="files-filestable list-container <?php p($_['showgridview'] ? 'view-grid' : '') ?>" data-allow-public-upload="<?php p($_['publicUploadEnabled'])?>" data-preview-x="250" data-preview-y="250">
 	<thead>
 		<tr>
-			<th class="hidden column-selection">
+			<th id="headerSelection" class="hidden column-selection">
 				<input type="checkbox" id="select_all_files" class="select-all checkbox"/>
 				<label for="select_all_files">
 					<span class="hidden-visually"><?php p($l->t('Select all'))?></span>
 				</label>
 			</th>
-			<th class="hidden column-name">
-				<div class="column-name-container">
-					<a class="name sort columntitle" onclick="event.preventDefault()" href="#" data-sort="name">
+			<th id='allLabel'><?php p($l->t('All')); ?></th>
+			<th id='headerName' class="hidden column-name">
+				<div id="headerName-container"  class="column-name-container">
+				<a class="name sort columntitle" onclick="event.preventDefault()" href="#" data-sort="name">
                         <span><?php p($l->t('Name')); ?></span>
-                        <span class="sort-indicator"></span>
-
-                    </a>
-                    <span class="selectedActions">
-                        <a href="#" onclick="event.preventDefault()" class="actions-selected">
-                            <span class="icon icon-more"></span>
-                            <span><?php p($l->t('Actions'))?></span>
-                        </a>
-					</span>
+						<span class="sort-indicator"></span>
+						<span class="headerSizeOpen">(</span>
+						<span id="headerSizeCount" class="column-size">
+							<?php p($l->t('Size')); ?>
+						</span>
+						<span class="headerSizeOpen">)</span>
+					</a>
 				</div>
 			</th>
-			<th class="hidden column-size">
+			<th  id="headerSize" class="hidden column-size">
 				<a class="size sort columntitle" href="#" onclick="event.preventDefault()" data-sort="size"><span><?php p($l->t('Size')); ?></span><span class="sort-indicator"></span></a>
 			</th>
-			<th class="hidden column-mtime">
+			<th id="headerDate" class="hidden column-mtime">
 				<a class="columntitle" href="#" onclick="event.preventDefault()" data-sort="mtime"><span><?php p($l->t('Modified')); ?></span><span class="sort-indicator"></span></a>
+			</th>
+			<th id="selectedMenu">
+				<div id="selectedActionsList" class="selectedActions">
+				</div>
+			</th>
+			<th>
+				<span id="selectedActionLabel">
+				<a href="#" onclick="event.preventDefault()" class="actions-selected">
+						<span class="icon icon-more"></span>
+						<span><?php  p($l->t('Actions'))?></span>
+					</a>
+				</span>
 			</th>
 		</tr>
 	</thead>
-	<tbody class="files-fileList">
+	<tbody id="fileList" class="files-fileList">
 	</tbody>
 	<tfoot>
 	</tfoot>
