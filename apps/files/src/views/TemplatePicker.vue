@@ -212,8 +212,8 @@ export default {
 					this.selectedTemplate?.templateType,
 				)
 				this.logger.debug('Created new file', fileInfo)
-
-				await fileList?.addAndFetchFileInfo(this.name, undefined, { scrollTo: true })
+				const options = _.extend({ scrollTo: true }, { showDetailsView: false } || {})
+				await fileList?.addAndFetchFileInfo(this.name, undefined, options)
 				fileList.rename(this.name)
 				this.close()
 			} catch (error) {

@@ -15685,7 +15685,7 @@ var width = margin * 20;
       return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
         var _OCA, _OCA$Files, _OCA$Files$App;
 
-        var currentDirectory, fileList, _this3$provider, _this3$provider2, _this3$selectedTempla, _this3$selectedTempla2, fileInfo;
+        var currentDirectory, fileList, _this3$provider, _this3$provider2, _this3$selectedTempla, _this3$selectedTempla2, fileInfo, options;
 
         return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
@@ -15713,21 +15713,24 @@ var width = margin * 20;
 
                 _this3.logger.debug('Created new file', fileInfo);
 
-                _context2.next = 11;
-                return fileList === null || fileList === void 0 ? void 0 : fileList.addAndFetchFileInfo(_this3.name, undefined, {
+                options = _.extend({
                   scrollTo: true
-                });
+                }, {
+                  showDetailsView: false
+                } || {});
+                _context2.next = 12;
+                return fileList === null || fileList === void 0 ? void 0 : fileList.addAndFetchFileInfo(_this3.name, undefined, options);
 
-              case 11:
+              case 12:
                 fileList.rename(_this3.name);
 
                 _this3.close();
 
-                _context2.next = 20;
+                _context2.next = 21;
                 break;
 
-              case 15:
-                _context2.prev = 15;
+              case 16:
+                _context2.prev = 16;
                 _context2.t0 = _context2["catch"](4);
 
                 _this3.logger.error('Error while creating the new file from template');
@@ -15735,17 +15738,17 @@ var width = margin * 20;
                 console.error(_context2.t0);
                 Object(_nextcloud_dialogs__WEBPACK_IMPORTED_MODULE_1__["showError"])(_this3.t('files', 'Unable to create new file from template'));
 
-              case 20:
-                _context2.prev = 20;
+              case 21:
+                _context2.prev = 21;
                 _this3.loading = false;
-                return _context2.finish(20);
+                return _context2.finish(21);
 
-              case 23:
+              case 24:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, null, [[4, 15, 20, 23]]);
+        }, _callee2, null, [[4, 16, 21, 24]]);
       }))();
     }
   }
