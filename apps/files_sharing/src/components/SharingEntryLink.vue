@@ -315,7 +315,11 @@ export default {
 					return this.share.shareWith
 				}
 			}
-			return t('files_sharing', 'Share link')
+			if (this.fileInfo.type === 'dir') {
+				return t('files_sharing', 'Link to folder')
+			} else {
+				return t('files_sharing', 'Link to file')
+			}
 		},
 
 		/**
