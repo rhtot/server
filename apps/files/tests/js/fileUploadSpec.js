@@ -157,7 +157,7 @@ describe('OC.Upload tests', function() {
 			fileList.add({name: 'conflict.txt', mimetype: 'text/plain'});
 			fileList.add({name: 'conflict2.txt', mimetype: 'text/plain'});
 
-			conflictDialogStub = sinon.stub(OC.dialogs, 'fileexists');
+			conflictDialogStub = sinon.stub(OC.dialogs, 'fileexistsConflictPreDlg');
 
 			uploader = new OC.Uploader($dummyUploader, {
 				progressBar: progressBarStub,
@@ -178,6 +178,7 @@ describe('OC.Upload tests', function() {
 
 			fileList.destroy();
 		});
+
 		it('does not show conflict dialog when no client side conflict', function(done) {
 			$('#free_space').val(200000);
 			var counter = 0;
@@ -197,6 +198,7 @@ describe('OC.Upload tests', function() {
 			expect(conflictDialogStub.notCalled).toEqual(true);
 
 		});
+
 		it('shows conflict dialog when no client side conflict', function(done) {
 			var counter = 0;
 			conflictDialogStub.callsFake(function(){
@@ -231,6 +233,7 @@ describe('OC.Upload tests', function() {
 			]);
 
 		});
+
 		it('cancels upload when skipping file in conflict mode', function(done) {
 			var fileData = {name: 'conflict.txt'};
 			var uploadData = addFiles(uploader, [
