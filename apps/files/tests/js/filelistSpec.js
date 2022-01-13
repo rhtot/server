@@ -2176,6 +2176,8 @@ describe('OCA.Files.FileList tests', function() {
 
 			expect(selectedFiles.length).toEqual(41);
 		});
+
+		/* Date: 24.09.2021 Desc: Added cancel option which will remove any selection */
 		describe('Cancel', function() {
 			it('selection summary hide when "Cancel" clicked', function() {
 				var $summary = $('#headerName a.name>span:first');
