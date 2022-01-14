@@ -187,11 +187,7 @@ class JobList implements IJobList {
 	 * @param bool $onlyTimeSensitive
 	 * @return IJob|null
 	 */
-<<<<<<< HEAD
-	public function getNext(bool $onlyTimeSensitive = false): ?IJob {
-=======
 	public function getNext(string $jobClass = null) {
->>>>>>> 86c3814fea (Allow calling cron.php with a background job class)
 		$query = $this->connection->getQueryBuilder();
 		$query->select('*')
 			->from('jobs')
@@ -200,13 +196,8 @@ class JobList implements IJobList {
 			->orderBy('last_checked', 'ASC')
 			->setMaxResults(1);
 
-<<<<<<< HEAD
-		if ($onlyTimeSensitive) {
-			$query->andWhere($query->expr()->eq('time_sensitive', $query->createNamedParameter(IJob::TIME_SENSITIVE, IQueryBuilder::PARAM_INT)));
-=======
 		if ($jobClass) {
 			$query->andWhere($query->expr()->eq('class', $query->createNamedParameter($jobClass)));
->>>>>>> 86c3814fea (Allow calling cron.php with a background job class)
 		}
 
 		$update = $this->connection->getQueryBuilder();
@@ -229,7 +220,7 @@ class JobList implements IJobList {
 
 			if ($count === 0) {
 				// Background job already executed elsewhere, try again.
-				return $this->getNext($onlyTimeSensitive);
+				return $this->getNext($jobClass);
 			}
 			$job = $this->buildJob($row);
 
@@ -243,7 +234,7 @@ class JobList implements IJobList {
 				$reset->execute();
 
 				// Background job from disabled app, try again.
-				return $this->getNext($onlyTimeSensitive);
+				return $this->getNext($jobClass);
 			}
 
 			return $job;
