@@ -1716,7 +1716,14 @@
 				linkElem.addClass('disabled');
 			}
 
-			linkElem.append('<div class="thumbnail-wrapper"><div class="thumbnail" style="background-image:url(' + icon + ');"></div></div>');
+			var contClass = "";
+			if($("#cropimagepreviewsToggle").prop('checked') == true){
+				contClass = "";
+			}else{
+				contClass = " thumbnail-contain";
+			}
+
+			linkElem.append('<div class="thumbnail-wrapper"><div class="thumbnail'+contClass+'" style="background-image:url(' + icon + ');"></div></div>');
 
 			// from here work on the display name
 			name = fileData.displayName || name;
