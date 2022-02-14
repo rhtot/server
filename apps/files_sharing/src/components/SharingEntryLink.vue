@@ -589,6 +589,11 @@ export default {
 			const permissions = parseInt(option, 10)
 			this.share.permissions = permissions
 			this.queueUpdate('permissions')
+
+			if (permissions === OC.PERMISSION_CREATE) {
+				this.share.hideDownload = false
+				this.queueUpdate('hideDownload')
+			}
 		},
 
 		async copyLink() {

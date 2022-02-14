@@ -43,7 +43,7 @@
 				</SharingEntrySimple>
 
 				<p class="sharing-message">
-					<span v-if='!canReshare'>
+					<span v-if="!canReshare">
 						<!-- {{ t('files_sharing', 'Resharing is not allowed.' ) }} -->
 					</span>
 					<span v-else>
@@ -63,7 +63,7 @@
 					:shares="shares"
 					@add:share="addShare" />
 
-				<div class="your-shares" v-if="canReshare">
+				<div v-if="canReshare" class="your-shares">
 					{{ t('files_sharing', 'Your shares' ) }}
 				</div>
 				<template v-if="!hasShares && !hasLinkShares && canReshare">
