@@ -66,6 +66,8 @@ window.addEventListener('DOMContentLoaded', function() {
 				// Only mount after we have all the info we need
 				await TabInstance.update(fileInfo)
 				TabInstance.$mount(el)
+
+				OCA.Files.Sidebar.setActiveTab('sharing')
 			},
 			update(fileInfo) {
 				TabInstance.update(fileInfo)
