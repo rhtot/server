@@ -3000,6 +3000,7 @@ var Dialogs = {
             }
 
             jquery__WEBPACK_IMPORTED_MODULE_1___default()(dialogId).ocdialogconflictpredlg('close');
+            _index__WEBPACK_IMPORTED_MODULE_2__["default"].conflictsData = null;
           }
         }, {
           text: conflictCount == 1 ? t('core', 'Keep both files') : t('core', 'Keep both files for all'),
@@ -3007,16 +3008,6 @@ var Dialogs = {
           click: function click() {
             if (typeof controller.onContinueConflictPreDlg !== 'undefined') {
               controller.onContinueConflictPreDlg(true, true);
-            }
-
-            jquery__WEBPACK_IMPORTED_MODULE_1___default()(dialogId).ocdialogconflictpredlg('close');
-          }
-        }, {
-          text: t('core', 'More details'),
-          classes: 'cancel oc-conflict-pre-dlg-button',
-          click: function click() {
-            if (typeof controller.moreDetails !== 'undefined') {
-              controller.moreDetails(jquery__WEBPACK_IMPORTED_MODULE_1___default()(dialogId + ' .conflict'));
             }
 
             jquery__WEBPACK_IMPORTED_MODULE_1___default()(dialogId).ocdialogconflictpredlg('close');
@@ -3051,6 +3042,7 @@ var Dialogs = {
 
         jquery__WEBPACK_IMPORTED_MODULE_1___default()(".close-conflict-pre-dlg").on('click', function () {
           jquery__WEBPACK_IMPORTED_MODULE_1___default()(dialogId).ocdialogconflictpredlg('close');
+          _index__WEBPACK_IMPORTED_MODULE_2__["default"].conflictsData = null;
         });
         dialogDeferred.resolve();
       }).fail(function () {
