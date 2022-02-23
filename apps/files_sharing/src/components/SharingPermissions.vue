@@ -152,6 +152,14 @@
 						@update:value="addExpirationDate">
 						{{ t('files_sharing', 'Enter a date') }}
 					</ActionInput>
+					<div v-if="isLinkShare && !isFolder">
+						<ExternalShareAction v-for="action in externalLinkActions"
+							:id="action.id"
+							:key="action.id"
+							:action="action"
+							:file-info="fileInfo"
+							:share="share" />
+					</div>
 				</div>
 			</div>
 		</template>
@@ -272,6 +280,7 @@ import GeneratePassword from '../utils/GeneratePassword'
 import Vue from 'vue'
 import { mapGetters } from 'vuex'
 import ShareRequests from '../mixins/ShareRequests'
+import ExternalShareAction from './ExternalShareAction'
 
 export default {
 	name: 'SharingPermissions',
@@ -280,6 +289,7 @@ export default {
 		ActionRadio,
 		ActionCheckbox,
 		ActionInput,
+		ExternalShareAction,
 	},
 
 	directives: {
@@ -306,6 +316,7 @@ export default {
 			hideDownload: null,
 
 			shareLabel: this.share.newLabel || this.share.label || '',
+			ExternalShareActions: OCA.Sharing.ExternalShareActions.state,
 		}
 	},
 
@@ -426,6 +437,13 @@ export default {
 			}
 		},
 
+		externalLinkActions() {
+			// filter only the registered actions for said link
+			return this.ExternalShareActions.actions
+				.filter(action => action.shareType.includes(OC.Share.SHARE_TYPE_LINK))
+			// || action.shareType.includes(OC.Share.SHARE_TYPE_EMAIL))
+		},
+
 		isLinkShare() {
 			return this.SHARE_TYPES.SHARE_TYPE_LINK === this.share.type
 		},
@@ -521,6 +539,8 @@ export default {
 
 			if (this.share.hideDownload) {
 				this.hideDownload = this.share.hideDownload.toString()
+			} else {
+				this.hideDownload = 'false'
 			}
 
 			if (this.share.newPassword !== undefined) {
