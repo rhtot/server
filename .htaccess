@@ -48,8 +48,8 @@
   </FilesMatch>
 
   # Let browsers cache WOFF files for a week
-  <FilesMatch "\.woff2?$">
-    Header set Cache-Control "max-age=604800"
+  <FilesMatch "\.(css|js|svg|gif|png|jpg|ico|wasm|tflite)(\?v=.*)?$">
+    Header set Cache-Control "max-age=15778463, immutable"
   </FilesMatch>
 </IfModule>
 
