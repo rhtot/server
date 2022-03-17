@@ -438,7 +438,7 @@ class EmptyContentSecurityPolicy {
 		if (!empty($this->allowedScriptDomains) || $this->inlineScriptAllowed || $this->evalScriptAllowed) {
 			$policy .= 'script-src ';
 			if (is_string($this->useJsNonce)) {
-				$policy .= '\'nonce-'.base64_encode($this->useJsNonce).'\'';
+				$policy .= '\'strict-dynamic\' \'nonce-'.base64_encode($this->useJsNonce).'\'';
 				$allowedScriptDomains = array_flip($this->allowedScriptDomains);
 				unset($allowedScriptDomains['\'self\'']);
 				$this->allowedScriptDomains = array_flip($allowedScriptDomains);
