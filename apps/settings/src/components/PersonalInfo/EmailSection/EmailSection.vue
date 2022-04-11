@@ -22,14 +22,10 @@
 <template>
 	<form
 		ref="form"
-		class="section"
+		class="section multiple-mail"
 		@submit.stop.prevent="() => {}">
-		<HeaderBar
-			:is-valid-form="isValidForm"
-			:scope.sync="primaryEmail.scope"
-			@addAdditionalEmail="onAddAdditionalEmail" />
 
-		<template v-if="displayNameChangeSupported">
+		<template>
 			<Email
 				:primary="true"
 				:scope.sync="primaryEmail.scope"
@@ -38,9 +34,11 @@
 				@update:email="onUpdateEmail"
 				@update:notification-email="onUpdateNotificationEmail" />
 		</template>
-		<span v-else>
-			{{ primaryEmail.value || t('settings', 'No email address set') }}
-		</span>
+		<HeaderBar
+			:is-valid-form="isValidForm"
+			:scope.sync="primaryEmail.scope"
+			:addEmailLength="firstAdditionalEmailCount"
+			@addAdditionalEmail="onAddAdditionalEmail" />
 		<Email v-for="(additionalEmail, index) in additionalEmails"
 			:key="index"
 			:index="index"
@@ -100,6 +98,10 @@ export default {
 				return this.additionalEmails[0].value
 			}
 			return null
+		},
+
+		firstAdditionalEmailCount() {
+			return this.additionalEmails.length
 		},
 	},
 

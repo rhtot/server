@@ -34,6 +34,7 @@
 		<AddButton
 			class="add-button"
 			:disabled="!isValidForm"
+			:addButtonVisibility="addEmailLength"
 			@click.stop.prevent="addAdditionalEmail" />
 	</h3>
 </template>
@@ -59,6 +60,9 @@ export default {
 			type: String,
 			required: true,
 		},
+		addEmailLength: {
+			type: Number
+		}
 	},
 
 	data() {
@@ -85,6 +89,11 @@ export default {
 	}
 
 	.add-button {
-		margin: -12px 0 0 auto !important;
+		margin: 8px 0 0 0;
+		color: #e20074;
+		font-size: 16px;
+		font-family: TeleNeoWeb, TeleNeo, sans-serif;
+		font-weight: initial !important;
+		height: 20px;
 	}
 </style>

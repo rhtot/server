@@ -106,10 +106,10 @@ const userAgentMap = {
 	androidChrome: /Android.*(?:; (.*) Build\/).*Chrome\/(\d+)[0-9.]+/,
 	iphone: / *CPU +iPhone +OS +([0-9]+)_(?:[0-9_])+ +like +Mac +OS +X */,
 	ipad: /\(iPad; *CPU +OS +([0-9]+)_(?:[0-9_])+ +like +Mac +OS +X */,
-	iosClient: /^Mozilla\/5\.0 \(iOS\) (?:ownCloud|Nextcloud)-iOS.*$/,
+	iosClient: /^Mozilla\/5\.0 \(iOS\) (?:ownCloud|MagentaCLOUD)-iOS.*$/,
 	androidClient: /^Mozilla\/5\.0 \(Android\) ownCloud-android.*$/,
-	iosTalkClient: /^Mozilla\/5\.0 \(iOS\) Nextcloud-Talk.*$/,
-	androidTalkClient: /^Mozilla\/5\.0 \(Android\) Nextcloud-Talk.*$/,
+	iosTalkClient: /^Mozilla\/5\.0 \(iOS\) MagentaCLOUD-Talk.*$/,
+	androidTalkClient: /^Mozilla\/5\.0 \(Android\) MagentaCLOUD-Talk.*$/,
 	// DAVx5/3.3.8-beta2-gplay (2021/01/02; dav4jvm; okhttp/4.9.0) Android/10
 	davx5: /DAV(?:droid|x5)\/([^ ]+)/,
 	// Mozilla/5.0 (U; Linux; Maemo; Jolla; Sailfish; like Android 4.3) AppleWebKit/538.1 (KHTML, like Gecko) WebPirate/2.0 like Mobile Safari/538.1 (compatible)

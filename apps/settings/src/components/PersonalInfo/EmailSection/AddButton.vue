@@ -22,9 +22,10 @@
 <template>
 	<button
 		:disabled="disabled"
-		@click.stop.prevent="onClick">
+		@click.stop.prevent="onClick"
+		v-if="!addButtonVisibility">
 		<span class="icon icon-add" />
-		{{ t('settings', 'Add') }}
+		{{ t('settings', 'Add alternative mail address') }}
 	</button>
 </template>
 
@@ -37,6 +38,9 @@ export default {
 			type: Boolean,
 			default: true,
 		},
+		addButtonVisibility: {
+			type: Number
+		}
 	},
 
 	methods: {
@@ -50,27 +54,9 @@ export default {
 <style lang="scss" scoped>
 	button {
 		height: 44px;
-		padding: 0 16px;
+		padding: 0 !important;
 		border: none;
 		background-color: transparent;
-
-		&:hover {
-			background-color: rgba(127, 127, 127, .15);
-		}
-
-		&:enabled {
-			opacity: 0.4 !important;
-
-			.icon {
-				opacity: 0.8 !important;
-			}
-		}
-
-		&:enabled:hover {
-			background-color: rgba(127, 127, 127, .25);
-			opacity: 0.8 !important;
-		}
-
 		.icon {
 			margin-right: 8px;
 		}
