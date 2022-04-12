@@ -129,10 +129,6 @@ class User implements IUser {
 	 * @return string
 	 */
 	public function getDisplayName() {
-		$user = \OC::$server->getUserSession()->getUser();
-		if ($user === null || $this->uid !== $user->getUID()) {
-			return $this->getEMailAddress() ?? $this->uid;
-		}
 		if ($this->displayName === null) {
 			$displayName = '';
 			if ($this->backend && $this->backend->implementsActions(Backend::GET_DISPLAYNAME)) {
