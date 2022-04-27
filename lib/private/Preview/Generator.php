@@ -460,7 +460,7 @@ class Generator {
 	}
 
 	/**
-	 * Get the specific preview folder for this file
+	 * Get the specific preview folder forgetPreviewsToDelete this file
 	 *
 	 * @param File $file
 	 * @return ISimpleFolder
