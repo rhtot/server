@@ -78,9 +78,21 @@ class VerificationController extends Controller {
 	 * @NoSubAdminRequired
 	 */
 	public function showVerifyMail(string $token, string $userId, string $key) {
-		if ($this->userSession->getUser()->getUID() !== $userId) {
-			// not a public page, hence getUser() must return an IUser
-			throw new InvalidArgumentException('Logged in user is not mail address owner');
+		try{
+			if ($this->userSession->getUser()->getUID() !== $userId) {
+				// not a public page, hence getUser() must return an IUser
+				throw new InvalidArgumentException($this->l10n->t('Logged in user is not mail address owner'));
+			}
+		}
+		catch (InvalidArgumentException $e){
+			$error = $e->getMessage();
+		}
+
+		if (isset($error)){
+			return new TemplateResponse(
+			'core', 'error', [
+			'errors' => [['error' => $error]]
+			], TemplateResponse::RENDER_AS_GUEST);
 		}
 		$email = $this->crypto->decrypt($key);
 
