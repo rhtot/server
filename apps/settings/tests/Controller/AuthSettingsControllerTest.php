@@ -116,7 +116,7 @@ class AuthSettingsControllerTest extends TestCase {
 			->willReturn($password);
 		$sessionToken->expects($this->once())
 			->method('getLoginName')
-			->willReturn('User13');
+			->willReturn('abc@example.org');
 
 		$this->secureRandom->expects($this->exactly(5))
 			->method('generate')
@@ -126,7 +126,7 @@ class AuthSettingsControllerTest extends TestCase {
 
 		$this->tokenProvider->expects($this->once())
 			->method('generateToken')
-			->with($newToken, $this->uid, 'User13', $password, $name, IToken::PERMANENT_TOKEN)
+			->with($newToken, $this->uid, 'abc@example.org', $password, $name, IToken::PERMANENT_TOKEN)
 			->willReturn($deviceToken);
 
 		$deviceToken->expects($this->once())
@@ -138,7 +138,7 @@ class AuthSettingsControllerTest extends TestCase {
 		$expected = [
 			'token' => $newToken,
 			'deviceToken' => ['dummy' => 'dummy', 'canDelete' => true, 'canRename' => true],
-			'loginName' => 'User13',
+			'loginName' => 'abc@example.org',
 		];
 
 		$response = $this->controller->create($name);
