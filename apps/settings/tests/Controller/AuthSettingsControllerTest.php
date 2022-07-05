@@ -44,6 +44,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\ISession;
 use OCP\IUserSession;
+use OCP\IUser;
 use OCP\Security\ISecureRandom;
 use OCP\Session\Exceptions\SessionNotAvailableException;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -101,6 +102,7 @@ class AuthSettingsControllerTest extends TestCase {
 		$name = 'Nexus 4';
 		$sessionToken = $this->createMock(IToken::class);
 		$deviceToken = $this->createMock(IToken::class);
+		$user = $this->createMock(IUser::class);
 		$password = '123456';
 
 		$this->session->expects($this->once())
@@ -116,8 +118,13 @@ class AuthSettingsControllerTest extends TestCase {
 			->willReturn($password);
 		$sessionToken->expects($this->once())
 			->method('getLoginName')
+			->willReturn('User13');
+		$user->expects($this->once())
+			->method('getEMailAddress')
 			->willReturn('abc@example.org');
-
+		$this->userSession->expects($this->once())
+			->method('getUser')
+			->willReturn($user);
 		$this->secureRandom->expects($this->exactly(5))
 			->method('generate')
 			->with(5, ISecureRandom::CHAR_HUMAN_READABLE)
@@ -126,7 +133,7 @@ class AuthSettingsControllerTest extends TestCase {
 
 		$this->tokenProvider->expects($this->once())
 			->method('generateToken')
-			->with($newToken, $this->uid, 'abc@example.org', $password, $name, IToken::PERMANENT_TOKEN)
+			->with($newToken, $this->uid, 'User13', $password, $name, IToken::PERMANENT_TOKEN)
 			->willReturn($deviceToken);
 
 		$deviceToken->expects($this->once())
