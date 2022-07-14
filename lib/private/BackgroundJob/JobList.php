@@ -393,24 +393,42 @@ class JobList implements IJobList {
 	}
 
 	public function hasReservedJob(?string $className = null): bool {
+        $query = $this->connection->getQueryBuilder();
+        $query->select('*')
+            ->from('jobs')
+            ->where($query->expr()->neq('reserved_at', $query->createNamedParameter(0, IQueryBuilder::PARAM_INT)))
+            ->setMaxResults(1);
+
+        if ($className !== null) {
+            $query->andWhere($query->expr()->eq('class', $query->createNamedParameter($className)));
+        }
+
+        try {
+            $result = $query->executeQuery();
+            $hasReservedJobs = $result->fetch() !== false;
+            $result->closeCursor();
+            return $hasReservedJobs;
+        } catch (Exception $e) {
+            $this->logger->debug('Querying reserved jobs failed', ['exception' => $e]);
+            return false;
+        }
+    }
+        
+    public function countByClass(): array {
 		$query = $this->connection->getQueryBuilder();
-		$query->select('*')
+		$query->select('class')
+			->selectAlias($query->func()->count('id'), 'count')
 			->from('jobs')
-			->where($query->expr()->neq('reserved_at', $query->createNamedParameter(0, IQueryBuilder::PARAM_INT)))
-			->setMaxResults(1);
+			->orderBy('count')
+			->groupBy('class');
 
-		if ($className !== null) {
-			$query->andWhere($query->expr()->eq('class', $query->createNamedParameter($className)));
+		$result = $query->executeQuery();
+
+		$jobs = [];
+		while ($row = $result->fetch()) {
+			$jobs[] = $row;
 		}
 
-		try {
-			$result = $query->executeQuery();
-			$hasReservedJobs = $result->fetch() !== false;
-			$result->closeCursor();
-			return $hasReservedJobs;
-		} catch (Exception $e) {
-			$this->logger->debug('Querying reserved jobs failed', ['exception' => $e]);
-			return false;
-		}
+		return $jobs;
 	}
 }
