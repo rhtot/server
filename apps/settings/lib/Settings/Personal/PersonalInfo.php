@@ -156,7 +156,11 @@ class PersonalInfo implements ISettings {
 		$localeParameters = $this->getLocales($user);
 		$messageParameters = $this->getMessageParameters($account);
 		$trashSizeinBytes = self::getTrashbinSize($uid);
-		$filesSizeInBytes = $storageInfo['used'] - ($photoVideoSizeInBytes);
+		if($storageInfo['used']>$photoVideoSizeInBytes){
+			$filesSizeInBytes = $storageInfo['used'] - ($photoVideoSizeInBytes);
+		}else{
+			$filesSizeInBytes = $photoVideoSizeInBytes - $storageInfo['used'];
+		}
 		if($filesSizeInBytes < 0){
 			$filesSizeInBytes = 0;
 		}
