@@ -26,20 +26,11 @@
 			id="language"
 			:placeholder="t('settings', 'Language')"
 			@change="onLanguageChange">
-			<option v-for="commonLanguage in commonLanguages"
-				:key="commonLanguage.code"
-				:selected="language.code === commonLanguage.code"
-				:value="commonLanguage.code">
-				{{ commonLanguage.name }}
-			</option>
-			<option disabled>
-				──────────
-			</option>
-			<option v-for="otherLanguage in otherLanguages"
-				:key="otherLanguage.code"
-				:selected="language.code === otherLanguage.code"
-				:value="otherLanguage.code">
-				{{ otherLanguage.name }}
+			<option v-for="customLanguage in customLanguagesMagenta"
+				:key="customLanguage.code"
+				:selected="language.code === customLanguage.code"
+				:value="customLanguage.code">
+				{{ customLanguage.name }}
 			</option>
 		</select>
 
@@ -90,6 +81,23 @@ export default {
 					.reduce((acc, { code, name }) => ({ ...acc, [code]: name }), {})
 			)
 		},
+
+		customLanguagesMagenta () {
+			const languages = []
+			for (var i = 0; i < this.commonLanguages.length; i++) {
+				if(this.commonLanguages[i]['code']=="de_DE"){
+					languages[0] = this.commonLanguages[i];
+					languages[0]['name'] = languages[0]['name'].split("(")[0]
+				}
+			}
+			for (var i = 0; i < this.otherLanguages.length; i++) {
+				if(this.otherLanguages[i]['code']=="en_GB"){
+					languages[1] = this.otherLanguages[i];
+					languages[1]['name'] = languages[1]['name'].split("(")[0]
+				}
+			}
+			return languages
+		}
 	},
 
 	methods: {
