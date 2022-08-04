@@ -107,8 +107,8 @@ class MailPlugin implements ISearchPlugin {
 			[
 				'limit' => $limit,
 				'offset' => $offset,
-				'enumeration' => (bool) $this->shareeEnumeration,
-				'fullmatch' => (bool) $this->shareeEnumerationFullMatch,
+				'enumeration' => $this->shareeEnumeration,
+				'fullmatch' => $this->shareeEnumerationFullMatch,
 			]
 		);
 		$lowerSearch = strtolower($search);
@@ -244,10 +244,7 @@ class MailPlugin implements ISearchPlugin {
 		}
 
 		$reachedEnd = true;
-		if (!$this->shareeEnumeration) {
-			$result['wide'] = [];
-			$userResults['wide'] = [];
-		} else {
+		if ($this->shareeEnumeration) {
 			$reachedEnd = (count($result['wide']) < $offset + $limit) &&
 				(count($userResults['wide']) < $offset + $limit);
 
