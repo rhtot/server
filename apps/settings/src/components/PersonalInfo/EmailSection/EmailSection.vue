@@ -21,18 +21,9 @@
 -->
 
 <template>
-	<section>
-		<HeaderBar
-			:account-property="accountProperty"
-			label-for="email"
-			:handle-scope-change="savePrimaryEmailScope"
-			:is-editable="true"
-			:is-multi-value-supported="true"
-			:is-valid-section="isValidSection"
-			:scope.sync="primaryEmail.scope"
-			@add-additional="onAddAdditionalEmail" />
+	<form class="section multiple-mail">
 
-		<template v-if="displayNameChangeSupported">
+		<template>
 			<Email
 				:primary="true"
 				:scope.sync="primaryEmail.scope"
@@ -41,13 +32,20 @@
 				@update:email="onUpdateEmail"
 				@update:notification-email="onUpdateNotificationEmail" />
 		</template>
+		<HeaderBar
+			:account-property="accountProperty"
+			label-for="email"
+			:handle-scope-change="savePrimaryEmailScope"
+			:is-editable="true"
+			:is-multi-value-supported="true"
+			:is-valid-section="isValidSection"
+			:scope.sync="primaryEmail.scope"
+			:addEmailLength="firstAdditionalEmailCount"
+			@add-additional="onAddAdditionalEmail" />
 
-		<span v-else>
-			{{ primaryEmail.value || t('settings', 'No email address set') }}
-		</span>
+
 
 		<template v-if="additionalEmails.length">
-			<em class="additional-emails-label">{{ t('settings', 'Additional emails') }}</em>
 			<Email v-for="(additionalEmail, index) in additionalEmails"
 				:key="index"
 				:index="index"
@@ -59,7 +57,7 @@
 				@update:notification-email="onUpdateNotificationEmail"
 				@delete-additional-email="onDeleteAdditionalEmail(index)" />
 		</template>
-	</section>
+	</form>
 </template>
 
 <script>
@@ -101,6 +99,10 @@ export default {
 				return this.additionalEmails[0].value
 			}
 			return null
+		},
+
+		firstAdditionalEmailCount() {
+			return this.additionalEmails.length
 		},
 
 		isValidSection() {

@@ -40,6 +40,7 @@
 			<AddButton
 				class="add-button"
 				:disabled="!isValidSection"
+				:addButtonVisibility="addEmailLength"
 				@click.stop.prevent="onAddAdditional" />
 		</template>
 	</h3>
@@ -84,6 +85,9 @@ export default {
 		scope: {
 			type: String,
 			default: null,
+		},
+		addEmailLength: {
+			type: Number
 		},
 	},
 
@@ -141,6 +145,11 @@ export default {
 	}
 
 	.add-button {
-		margin: -12px 0 0 auto !important;
+		margin: 8px 0 0 0;
+		color: #e20074;
+		font-size: 16px;
+		font-family: TeleNeoWeb, TeleNeo, sans-serif;
+		font-weight: initial !important;
+		height: 20px;
 	}
 </style>

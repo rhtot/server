@@ -20,22 +20,34 @@
   -->
 
 <template>
-	<div v-if="!adding">
+	<div id="settings-input" v-if="!adding">
+		<div id="setting-tokens-table">
+			{{ t('settings', 'You can terminate individual sessions here or remove them completely. When terminating, a new login is necessary. If you delete a session, all data of your MagentaCLOUD on the respective device will also be removed.') }}
+		</div>
+		<div id="setting-session">
+			{{ t('settings', 'You can manually create a new session here and connect a new device to your MagentaCLOUD via login data or QR code.') }}
+		</div>
 		<input v-model="deviceName"
 			type="text"
 			:disabled="loading"
-			:placeholder="t('settings', 'App name')"
+			:placeholder="t('settings', 'Session label')"
 			@keydown.enter="submit">
-		<button class="button"
-			:disabled="loading"
-			@click="submit">
-			{{ t('settings', 'Create new app password') }}
-		</button>
+		<div>
+			<button class="create-session"
+				:disabled="loading"
+				@click="submit">
+				{{ t('settings', 'Create new session') }}
+			</button>
+		</div>
 	</div>
 	<div v-else>
-		{{ t('settings', 'Use the credentials below to configure your app or device.') }}
-		{{ t('settings', 'For security reasons this password will only be shown once.') }}
-		<div class="app-password-row">
+		<div id="setting-tokens-table">
+			{{ t('settings', 'You can terminate individual sessions here or remove them completely. When terminating, a new login is necessary. If you delete a session, all data of your MagentaCLOUD on the respective device will also be removed.') }}
+		</div>
+		<div id="setting-session">
+			{{ t('settings', 'You can manually create a new session here and connect a new device to your MagentaCLOUD via login data or QR code.') }}
+		</div>
+		<div class="app-password-username-row">
 			<span class="app-password-label">{{ t('settings', 'Username') }}</span>
 			<input :value="loginName"
 				type="text"
@@ -59,16 +71,17 @@
 				class="icon icon-clippy"
 				@mouseover="hoveringCopyButton = true"
 				@mouseleave="hoveringCopyButton = false" />
+		</div>
+
+		<div class="app-password-code">
 			<button class="button"
 				@click="reset">
 				{{ t('settings', 'Done') }}
 			</button>
-		</div>
-		<div class="app-password-row">
 			<span class="app-password-label" />
 			<a v-if="!showQR"
 				@click="showQR = true">
-				{{ t('settings', 'Show QR code for mobile apps') }}
+				{{ t('settings', 'Show QR code') }}
 			</a>
 			<QR v-else
 				:value="qrUrl" />
@@ -179,7 +192,7 @@ export default {
 
 <style lang="scss" scoped>
 	.app-password-row {
-		display: table-row;
+		display: table-cell;
 
 		.icon {
 			background-size: 16px 16px;

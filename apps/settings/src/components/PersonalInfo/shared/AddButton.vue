@@ -23,9 +23,10 @@
 <template>
 	<button
 		:disabled="disabled"
-		v-on="$listeners">
+		v-on="$listeners"
+		v-if="!addButtonVisibility">
 		<span class="icon icon-add" />
-		{{ t('settings', 'Add') }}
+		{{ t('settings', 'Add alternative mail address') }}
 	</button>
 </template>
 
@@ -38,6 +39,9 @@ export default {
 			type: Boolean,
 			default: true,
 		},
+		addButtonVisibility: {
+			type: Number
+		}
 	},
 }
 </script>
@@ -45,7 +49,7 @@ export default {
 <style lang="scss" scoped>
 	button {
 		height: 44px;
-		padding: 0 16px;
+		padding: 0 !important;
 		border: none;
 		background-color: transparent;
 
@@ -53,27 +57,5 @@ export default {
 			margin-right: 8px;
 		}
 
-		&:enabled {
-			opacity: 0.4 !important;
-
-			.icon {
-				opacity: 0.8 !important;
-			}
-		}
-
-		&:hover,
-		&:focus,
-		&:active {
-			background-color: rgba(127, 127, 127, .15);
-		}
-
-		&:enabled {
-			&:hover,
-			&:focus,
-			&:active {
-				background-color: rgba(127, 127, 127, .25);
-				opacity: 0.8 !important;
-			}
-		}
 	}
 </style>

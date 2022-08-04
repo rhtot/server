@@ -67,10 +67,10 @@ if (profileEnabledGlobally) {
 	const BiographyView = Vue.extend(BiographySection)
 	const ProfileVisibilityView = Vue.extend(ProfileVisibilitySection)
 
-	/*new ProfileView().$mount('#vue-profile-section')
+	new ProfileView().$mount('#vue-profile-section')
 	new OrganisationView().$mount('#vue-organisation-section')
 	new RoleView().$mount('#vue-role-section')
 	new HeadlineView().$mount('#vue-headline-section')
 	new BiographyView().$mount('#vue-biography-section')
-	new ProfileVisibilityView().$mount('#vue-profile-visibility-section')*/
+	new ProfileVisibilityView().$mount('#vue-profile-visibility-section')
 }
