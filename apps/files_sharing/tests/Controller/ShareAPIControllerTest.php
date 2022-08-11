@@ -7,7 +7,7 @@
  * @author Daniel Calviño Sánchez <danxuliu@gmail.com>
  * @author Georg Ehrke <oc.list@georgehrke.com>
  * @author Joas Schilling <coding@schilljs.com>
- * @author John Molakvoæ <skjnldsv@protonmail.com>
+ * @author John Molakvoæ (skjnldsv) <skjnldsv@protonmail.com>
  * @author Julius Härtl <jus@bitgrid.net>
  * @author Maxence Lange <maxence@artificial-owl.com>
  * @author Maxence Lange <maxence@nextcloud.com>
@@ -15,7 +15,6 @@
  * @author Richard Steinmetz <richard@steinmetz.cloud>
  * @author Roeland Jago Douma <roeland@famdouma.nl>
  * @author Thomas Müller <thomas.mueller@tmit.eu>
- * @author Valdnet <47037905+Valdnet@users.noreply.github.com>
  * @author Vincent Petry <vincent@nextcloud.com>
  *
  * @license AGPL-3.0
@@ -33,6 +32,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>
  *
  */
+
 namespace OCA\Files_Sharing\Tests\Controller;
 
 use OCA\Files_Sharing\Controller\ShareAPIController;
@@ -47,7 +47,6 @@ use OCP\Files\Mount\IMountPoint;
 use OCP\Files\NotFoundException;
 use OCP\Files\Storage;
 use OCP\IConfig;
-use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IPreview;
@@ -505,7 +504,7 @@ class ShareAPIControllerTest extends TestCase {
 
 	public function createShare($id, $shareType, $sharedWith, $sharedBy, $shareOwner, $path, $permissions,
 								$shareTime, $expiration, $parent, $target, $mail_send, $note = '', $token = null,
-								$password = null, $label = '') {
+								$password = null, $label = '', $hideDownload = false) {
 		$share = $this->getMockBuilder(IShare::class)->getMock();
 		$share->method('getId')->willReturn($id);
 		$share->method('getShareType')->willReturn($shareType);
@@ -524,6 +523,7 @@ class ShareAPIControllerTest extends TestCase {
 		$share->method('getMailSend')->willReturn($mail_send);
 		$share->method('getToken')->willReturn($token);
 		$share->method('getPassword')->willReturn($password);
+		$share->method('getHideDownload')->willReturn($hideDownload);
 
 		if ($shareType === IShare::TYPE_USER ||
 			$shareType === IShare::TYPE_GROUP ||
@@ -608,6 +608,7 @@ class ShareAPIControllerTest extends TestCase {
 			'label' => '',
 			'displayname_file_owner' => 'ownerDisplay',
 			'mimetype' => 'myMimeType',
+			'size' => '',
 			'has_preview' => false,
 			'hide_download' => 0,
 			'can_edit' => false,
@@ -658,6 +659,7 @@ class ShareAPIControllerTest extends TestCase {
 			'label' => '',
 			'displayname_file_owner' => 'ownerDisplay',
 			'mimetype' => 'myFolderMimeType',
+			'size' => '',
 			'has_preview' => false,
 			'hide_download' => 0,
 			'can_edit' => false,
@@ -714,6 +716,7 @@ class ShareAPIControllerTest extends TestCase {
 			'label' => 'first link share',
 			'displayname_file_owner' => 'ownerDisplay',
 			'mimetype' => 'myFolderMimeType',
+			'size' => '',
 			'has_preview' => false,
 			'hide_download' => 0,
 			'can_edit' => false,
@@ -786,7 +789,7 @@ class ShareAPIControllerTest extends TestCase {
 		$user = $this->getMockBuilder(IUser::class)->getMock();
 		$user->method('getUID')->willReturn('userId');
 		$user->method('getDisplayName')->willReturn('userDisplay');
-		$user->method('getSystemEMailAddress')->willReturn('userId@example.com');
+		$user->method('getEMailAddress')->willReturn('userId@example.com');
 
 		$group = $this->getMockBuilder('OCP\IGroup')->getMock();
 		$group->method('getGID')->willReturn('groupId');
@@ -1619,8 +1622,6 @@ class ShareAPIControllerTest extends TestCase {
 				->method('get')
 				->with('valid-path')
 				->willReturn($path);
-		$userFolder->method('getById')
-			->willReturn([]);
 
 		$path->expects($this->once())
 			->method('lock')
@@ -1653,8 +1654,6 @@ class ShareAPIControllerTest extends TestCase {
 			->method('get')
 			->with('valid-path')
 			->willReturn($path);
-		$userFolder->method('getById')
-			->willReturn([]);
 
 		$path->expects($this->once())
 			->method('lock')
@@ -1687,8 +1686,6 @@ class ShareAPIControllerTest extends TestCase {
 			->method('get')
 			->with('valid-path')
 			->willReturn($path);
-		$userFolder->method('getById')
-			->willReturn([]);
 		$path->expects($this->once())
 			->method('lock')
 			->with(\OCP\Lock\ILockingProvider::LOCK_SHARED);
@@ -1739,8 +1736,6 @@ class ShareAPIControllerTest extends TestCase {
 				->method('get')
 				->with('valid-path')
 				->willReturn($path);
-		$userFolder->method('getById')
-			->willReturn([]);
 
 		$this->userManager->method('userExists')->with('validUser')->willReturn(true);
 
@@ -1795,8 +1790,6 @@ class ShareAPIControllerTest extends TestCase {
 				->method('get')
 				->with('valid-path')
 				->willReturn($path);
-		$userFolder->method('getById')
-			->willReturn([]);
 
 		$path->expects($this->once())
 			->method('lock')
@@ -1854,8 +1847,6 @@ class ShareAPIControllerTest extends TestCase {
 			->method('get')
 			->with('valid-path')
 			->willReturn($path);
-		$userFolder->method('getById')
-			->willReturn([]);
 
 		$this->groupManager->method('groupExists')->with('validGroup')->willReturn(true);
 
@@ -1908,8 +1899,6 @@ class ShareAPIControllerTest extends TestCase {
 			->method('get')
 			->with('valid-path')
 			->willReturn($path);
-		$userFolder->method('getById')
-			->willReturn([]);
 
 		$this->groupManager->method('groupExists')->with('validGroup')->willReturn(true);
 
@@ -1940,8 +1929,6 @@ class ShareAPIControllerTest extends TestCase {
 		$path->method('getStorage')->willReturn($storage);
 		$this->rootFolder->method('getUserFolder')->with($this->currentUser)->willReturnSelf();
 		$this->rootFolder->method('get')->with('valid-path')->willReturn($path);
-		$this->rootFolder->method('getById')
-			->willReturn([]);
 
 		$this->shareManager->method('newShare')->willReturn(\OC::$server->getShareManager()->newShare());
 
@@ -1961,8 +1948,6 @@ class ShareAPIControllerTest extends TestCase {
 		$path->method('getStorage')->willReturn($storage);
 		$this->rootFolder->method('getUserFolder')->with($this->currentUser)->willReturnSelf();
 		$this->rootFolder->method('get')->with('valid-path')->willReturn($path);
-		$this->rootFolder->method('getById')
-			->willReturn([]);
 
 		$this->shareManager->method('newShare')->willReturn(\OC::$server->getShareManager()->newShare());
 		$this->shareManager->method('shareApiAllowLinks')->willReturn(true);
@@ -1983,8 +1968,6 @@ class ShareAPIControllerTest extends TestCase {
 		$path->method('getStorage')->willReturn($storage);
 		$this->rootFolder->method('getUserFolder')->with($this->currentUser)->willReturnSelf();
 		$this->rootFolder->method('get')->with('valid-path')->willReturn($path);
-		$this->rootFolder->method('getById')
-			->willReturn([]);
 
 		$this->shareManager->method('newShare')->willReturn(\OC::$server->getShareManager()->newShare());
 		$this->shareManager->method('shareApiAllowLinks')->willReturn(true);
@@ -2004,8 +1987,6 @@ class ShareAPIControllerTest extends TestCase {
 		$path->method('getStorage')->willReturn($storage);
 		$this->rootFolder->method('getUserFolder')->with($this->currentUser)->willReturnSelf();
 		$this->rootFolder->method('get')->with('valid-path')->willReturn($path);
-		$this->rootFolder->method('getById')
-			->willReturn([]);
 
 		$this->shareManager->method('newShare')->willReturn(\OC::$server->getShareManager()->newShare());
 		$this->shareManager->method('shareApiAllowLinks')->willReturn(true);
@@ -2040,8 +2021,6 @@ class ShareAPIControllerTest extends TestCase {
 		$path->method('getStorage')->willReturn($storage);
 		$this->rootFolder->method('getUserFolder')->with($this->currentUser)->willReturnSelf();
 		$this->rootFolder->method('get')->with('valid-path')->willReturn($path);
-		$this->rootFolder->method('getById')
-			->willReturn([]);
 
 		$this->shareManager->method('newShare')->willReturn(\OC::$server->getShareManager()->newShare());
 		$this->shareManager->method('shareApiAllowLinks')->willReturn(true);
@@ -2076,8 +2055,6 @@ class ShareAPIControllerTest extends TestCase {
 		$path->method('getStorage')->willReturn($storage);
 		$this->rootFolder->method('getUserFolder')->with($this->currentUser)->willReturnSelf();
 		$this->rootFolder->method('get')->with('valid-path')->willReturn($path);
-		$this->rootFolder->method('getById')
-			->willReturn([]);
 
 		$this->shareManager->method('newShare')->willReturn(\OC::$server->getShareManager()->newShare());
 		$this->shareManager->method('shareApiAllowLinks')->willReturn(true);
@@ -2120,8 +2097,6 @@ class ShareAPIControllerTest extends TestCase {
 		$path->method('getPath')->willReturn('valid-path');
 		$this->rootFolder->method('getUserFolder')->with($this->currentUser)->willReturnSelf();
 		$this->rootFolder->method('get')->with('valid-path')->willReturn($path);
-		$this->rootFolder->method('getById')
-			->willReturn([]);
 
 		$this->shareManager->method('newShare')->willReturn(\OC::$server->getShareManager()->newShare());
 		$this->shareManager->method('shareApiAllowLinks')->willReturn(true);
@@ -2155,8 +2130,6 @@ class ShareAPIControllerTest extends TestCase {
 		$path->method('getStorage')->willReturn($storage);
 		$this->rootFolder->method('getUserFolder')->with($this->currentUser)->willReturnSelf();
 		$this->rootFolder->method('get')->with('valid-path')->willReturn($path);
-		$this->rootFolder->method('getById')
-			->willReturn([]);
 
 		$this->shareManager->method('newShare')->willReturn(\OC::$server->getShareManager()->newShare());
 		$this->shareManager->method('shareApiAllowLinks')->willReturn(true);
@@ -2198,8 +2171,6 @@ class ShareAPIControllerTest extends TestCase {
 		$path->method('getStorage')->willReturn($storage);
 		$this->rootFolder->method('getUserFolder')->with($this->currentUser)->willReturnSelf();
 		$this->rootFolder->method('get')->with('valid-path')->willReturn($path);
-		$this->rootFolder->method('getById')
-			->willReturn([]);
 
 		$this->shareManager->method('newShare')->willReturn(\OC::$server->getShareManager()->newShare());
 		$this->shareManager->method('shareApiAllowLinks')->willReturn(true);
@@ -2248,8 +2219,6 @@ class ShareAPIControllerTest extends TestCase {
 				->method('get')
 				->with('valid-path')
 				->willReturn($path);
-		$userFolder->method('getById')
-			->willReturn([]);
 
 		$this->userManager->method('userExists')->with('validUser')->willReturn(true);
 
@@ -2320,8 +2289,6 @@ class ShareAPIControllerTest extends TestCase {
 				->method('get')
 				->with('valid-path')
 				->willReturn($path);
-		$userFolder->method('getById')
-			->willReturn([]);
 
 		$this->userManager->method('userExists')->with('validUser')->willReturn(true);
 
@@ -2374,8 +2341,6 @@ class ShareAPIControllerTest extends TestCase {
 				->method('get')
 				->with('valid-path')
 				->willReturn($path);
-		$userFolder->method('getById')
-			->willReturn([]);
 
 		$path->expects($this->once())
 			->method('lock')
@@ -2459,8 +2424,6 @@ class ShareAPIControllerTest extends TestCase {
 				->method('get')
 				->with('valid-path')
 				->willReturn($path);
-		$userFolder->method('getById')
-			->willReturn([]);
 
 		$path->expects($this->once())
 			->method('lock')
@@ -2501,8 +2464,6 @@ class ShareAPIControllerTest extends TestCase {
 				->method('get')
 				->with('valid-path')
 				->willReturn($path);
-		$userFolder->method('getById')
-			->willReturn([]);
 
 		$path->expects($this->once())
 			->method('lock')
@@ -2583,8 +2544,6 @@ class ShareAPIControllerTest extends TestCase {
 			->method('get')
 			->with('valid-path')
 			->willReturn($path);
-		$userFolder->method('getById')
-			->willReturn([]);
 
 		$this->userManager->method('userExists')->with('validUser')->willReturn(true);
 
@@ -3012,7 +2971,7 @@ class ShareAPIControllerTest extends TestCase {
 
 	public function testUpdateLinkShareSendPasswordByTalkWithTalkDisabledDoesNotChangeOther() {
 		$this->expectException(\OCP\AppFramework\OCS\OCSForbiddenException::class);
-		$this->expectExceptionMessage('"Sending the password by Nextcloud Talk" for sharing a file or folder failed because Nextcloud Talk is not enabled.');
+		$this->expectExceptionMessage('Sharing sending the password by Nextcloud Talk failed because Nextcloud Talk is not enabled');
 
 		$ocs = $this->mockFormatShare();
 
@@ -3520,13 +3479,13 @@ class ShareAPIControllerTest extends TestCase {
 		$this->shareManager->expects($this->once())
 			->method('updateShare')
 			->with($share)
-			->willThrowException(new GenericShareException('Cannot increase permissions of path/file', 'Cannot increase permissions of path/file', 404));
+			->willThrowException(new GenericShareException('Can’t increase permissions of path/file', 'Can’t increase permissions of path/file', 404));
 
 		try {
 			$ocs->updateShare(42, 31);
 			$this->fail();
 		} catch (OCSException $e) {
-			$this->assertEquals('Cannot increase permissions of path/file', $e->getMessage());
+			$this->assertEquals('Can’t increase permissions of path/file', $e->getMessage());
 		}
 	}
 
@@ -3631,7 +3590,7 @@ class ShareAPIControllerTest extends TestCase {
 		$initiator->method('getDisplayName')->willReturn('initiatorDN');
 		$recipient = $this->getMockBuilder(IUser::class)->getMock();
 		$recipient->method('getDisplayName')->willReturn('recipientDN');
-		$recipient->method('getSystemEMailAddress')->willReturn('recipient');
+		$recipient->method('getEmailAddress')->willReturn('recipient');
 
 
 		$result = [];
@@ -3677,6 +3636,7 @@ class ShareAPIControllerTest extends TestCase {
 				'label' => null,
 				'mail_send' => 0,
 				'mimetype' => 'myMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'can_edit' => false,
@@ -3713,6 +3673,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_displayname_unique' => 'recipient',
 				'mail_send' => 0,
 				'mimetype' => 'myMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'can_edit' => false,
@@ -3765,6 +3726,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_displayname_unique' => 'recipient',
 				'mail_send' => 0,
 				'mimetype' => 'myMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'can_edit' => false,
@@ -3813,6 +3775,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_displayname_unique' => 'recipient',
 				'mail_send' => 0,
 				'mimetype' => 'myMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'can_edit' => true,
@@ -3862,6 +3825,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_displayname' => 'recipientGroupDisplayName',
 				'mail_send' => 0,
 				'mimetype' => 'myMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'can_edit' => false,
@@ -3908,6 +3872,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_displayname' => 'recipientGroup2',
 				'mail_send' => 0,
 				'mimetype' => 'myMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'can_edit' => false,
@@ -3960,6 +3925,7 @@ class ShareAPIControllerTest extends TestCase {
 				'mail_send' => 0,
 				'url' => 'myLink',
 				'mimetype' => 'myMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'can_edit' => false,
@@ -4013,6 +3979,7 @@ class ShareAPIControllerTest extends TestCase {
 				'mail_send' => 0,
 				'url' => 'myLink',
 				'mimetype' => 'myMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'can_edit' => false,
@@ -4060,6 +4027,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_displayname' => 'foobar',
 				'mail_send' => 0,
 				'mimetype' => 'myFolderMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'can_edit' => false,
@@ -4107,6 +4075,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_displayname' => 'foobar',
 				'mail_send' => 0,
 				'mimetype' => 'myFolderMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'can_edit' => false,
@@ -4156,6 +4125,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_avatar' => 'path/to/the/avatar',
 				'mail_send' => 0,
 				'mimetype' => 'myFolderMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'can_edit' => false,
@@ -4203,6 +4173,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_avatar' => '',
 				'mail_send' => 0,
 				'mimetype' => 'myFolderMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'can_edit' => false,
@@ -4250,6 +4221,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_avatar' => '',
 				'mail_send' => 0,
 				'mimetype' => 'myFolderMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'can_edit' => false,
@@ -4311,6 +4283,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_displayname' => 'mail display name',
 				'mail_send' => 0,
 				'mimetype' => 'myFolderMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'password' => 'password',
 				'send_password_by_talk' => false,
@@ -4360,6 +4333,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_displayname' => 'mail display name',
 				'mail_send' => 0,
 				'mimetype' => 'myFolderMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'password' => 'password',
 				'send_password_by_talk' => true,
@@ -4410,6 +4384,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_displayname_unique' => 'recipient',
 				'mail_send' => 0,
 				'mimetype' => 'mimeWithPreview',
+				'size' => '',
 				'has_preview' => true,
 				'hide_download' => 0,
 				'can_edit' => true,
@@ -4432,7 +4407,7 @@ class ShareAPIControllerTest extends TestCase {
 	public function testFormatShare(array $expects, \OCP\Share\IShare $share, array $users, $exception) {
 		$this->userManager->method('get')->willReturnMap($users);
 
-		$recipientGroup = $this->createMock(IGroup::class);
+		$recipientGroup = $this->createMock('\OCP\IGroup');
 		$recipientGroup->method('getDisplayName')->willReturn('recipientGroupDisplayName');
 		$this->groupManager->method('get')->willReturnMap([
 			['recipientGroup', $recipientGroup],
@@ -4441,6 +4416,7 @@ class ShareAPIControllerTest extends TestCase {
 		$this->urlGenerator->method('linkToRouteAbsolute')
 			->with('files_sharing.sharecontroller.showShare', ['token' => 'myToken'])
 			->willReturn('myLink');
+
 
 		$this->rootFolder->method('getUserFolder')
 			->with($this->currentUser)
@@ -4461,11 +4437,7 @@ class ShareAPIControllerTest extends TestCase {
 
 		$cm->method('search')
 			->willReturnMap([
-				['user@server.com', ['CLOUD'], [
-					'limit' => 1,
-					'enumeration' => false,
-					'strict_search' => true,
-				],
+				['user@server.com', ['CLOUD'], [],
 					[
 						[
 							'CLOUD' => [
@@ -4475,11 +4447,7 @@ class ShareAPIControllerTest extends TestCase {
 						],
 					],
 				],
-				['user@server.com', ['EMAIL'], [
-					'limit' => 1,
-					'enumeration' => false,
-					'strict_search' => true,
-				],
+				['user@server.com', ['EMAIL'], [],
 					[
 						[
 							'EMAIL' => [
@@ -4561,6 +4529,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_displayname' => '',
 				'mail_send' => 0,
 				'mimetype' => 'myMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'label' => '',
@@ -4607,6 +4576,7 @@ class ShareAPIControllerTest extends TestCase {
 				'share_with_displayname' => 'recipientRoomName',
 				'mail_send' => 0,
 				'mimetype' => 'myMimeType',
+				'size' => '',
 				'has_preview' => false,
 				'hide_download' => 0,
 				'label' => '',

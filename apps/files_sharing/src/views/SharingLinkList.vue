@@ -22,13 +22,7 @@
 
 <template>
 	<ul v-if="canLinkShare" class="sharing-link-list">
-		<!-- If no link shares, show the add link default entry -->
-		<SharingEntryLink v-if="!hasLinkShares && canReshare"
-			:can-reshare="canReshare"
-			:file-info="fileInfo"
-			@add:share="addShare" />
-
-		<!-- Else we display the list -->
+		<!-- we display the list -->
 		<template v-if="hasShares">
 			<!-- using shares[index] to work with .sync -->
 			<SharingEntryLink v-for="(share, index) in shares"
