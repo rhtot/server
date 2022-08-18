@@ -475,6 +475,10 @@ class ShareAPIController extends OCSController {
 
 		$share->setNode($path);
 
+		if ($note !== null) {
+			$share->setNote($note);
+		}
+
 		try {
 			$this->lock($share->getNode());
 		} catch (LockedException $e) {
@@ -593,10 +597,6 @@ class ShareAPIController extends OCSController {
 			// If we have a label, use it
 			if (!empty($label)) {
 				$share->setLabel($label);
-			}
-
-			if ($note !== null) {
-				$share->setNote($note);
 			}
 
 			if ($sendPasswordByTalk === 'true') {
