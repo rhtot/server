@@ -486,6 +486,10 @@ class ShareAPIController extends OCSController {
 
 		$share->setNode($path);
 
+		if ($note !== null) {
+			$share->setNote($note);
+		}
+
 		try {
 			$this->lock($share->getNode());
 		} catch (LockedException $e) {
