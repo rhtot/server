@@ -35,7 +35,7 @@
 		</template>
 
 		<template v-if="isEditable && isMultiValueSupported">
-			<Button type="tertiary"
+			<Button v-if="addEmailLength === 0" type="tertiary"
 				:disabled="!isValidSection"
 				:aria-label="t('settings', 'Add additional email')"
 				@click.stop.prevent="onAddAdditional">
