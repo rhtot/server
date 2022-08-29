@@ -42,7 +42,7 @@
 				<template #icon>
 					<Plus :size="20" />
 				</template>
-				{{ t('settings', 'Add') }}
+				{{ t('settings', 'Add alternative mail address') }}
 			</Button>
 		</template>
 	</h3>
@@ -88,6 +88,9 @@ export default {
 		scope: {
 			type: String,
 			default: null,
+		},
+		addEmailLength: {
+			type: Number
 		},
 	},
 
@@ -144,7 +147,13 @@ export default {
 		margin: -12px 0 0 8px;
 	}
 
+
 	.button-vue  {
-		margin: -6px 0 0 auto !important;
+		margin: 8px 0 0 0;
+		color: #e20074;
+		font-size: 16px;
+		font-family: TeleNeoWeb, TeleNeo, sans-serif;
+		font-weight: initial !important;
+		height: 20px;
 	}
 </style>

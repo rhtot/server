@@ -24,8 +24,9 @@
 		<thead v-if="tokens.length">
 			<tr>
 				<th />
-				<th>{{ t('settings', 'Device') }}</th>
+				<th>{{ t('settings', 'Session') }}</th>
 				<th>{{ t('settings', 'Last activity') }}</th>
+				<th>{{ t('settings', 'Edit') }}</th>
 				<th />
 			</tr>
 		</thead>
@@ -126,10 +127,6 @@ export default {
 	#app-tokens-table {
 		tr > *:nth-child(2) {
 			padding-left: 6px;
-		}
-
-		tr > *:nth-child(3) {
-			text-align: right;
 		}
 	}
 </style>

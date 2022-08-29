@@ -21,32 +21,31 @@
 -->
 
 <template>
-	<section>
-		<HeaderBar :account-property="accountProperty"
-			label-for="email"
-			:handle-scope-change="savePrimaryEmailScope"
-			:is-editable="true"
-			:is-multi-value-supported="true"
-			:is-valid-section="isValidSection"
-			:scope.sync="primaryEmail.scope"
-			@add-additional="onAddAdditionalEmail" />
+	<form class="section multiple-mail">
 
-		<template v-if="displayNameChangeSupported">
-			<Email :primary="true"
+		<template>
+			<Email
+				:primary="true"
 				:scope.sync="primaryEmail.scope"
 				:email.sync="primaryEmail.value"
 				:active-notification-email.sync="notificationEmail"
 				@update:email="onUpdateEmail"
 				@update:notification-email="onUpdateNotificationEmail" />
 		</template>
+		<HeaderBar
+			:account-property="accountProperty"
+			label-for="email"
+			:handle-scope-change="savePrimaryEmailScope"
+			:is-editable="true"
+			:is-multi-value-supported="true"
+			:is-valid-section="isValidSection"
+			:scope.sync="primaryEmail.scope"
+			:addEmailLength="firstAdditionalEmailCount"
+			@add-additional="onAddAdditionalEmail" />
 
-		<span v-else>
-			{{ primaryEmail.value || t('settings', 'No email address set') }}
-		</span>
+
 
 		<template v-if="additionalEmails.length">
-			<em class="additional-emails-label">{{ t('settings', 'Additional emails') }}</em>
-			<!-- TODO use unique key for additional email when uniqueness can be guaranteed, see https://github.com/nextcloud/server/issues/26866 -->
 			<Email v-for="(additionalEmail, index) in additionalEmails"
 				:key="additionalEmail.key"
 				:index="index"
@@ -58,7 +57,7 @@
 				@update:notification-email="onUpdateNotificationEmail"
 				@delete-additional-email="onDeleteAdditionalEmail(index)" />
 		</template>
-	</section>
+	</form>
 </template>
 
 <script>
@@ -100,6 +99,10 @@ export default {
 				return this.additionalEmails[0].value
 			}
 			return null
+		},
+
+		firstAdditionalEmailCount() {
+			return this.additionalEmails.length
 		},
 
 		isValidSection() {
