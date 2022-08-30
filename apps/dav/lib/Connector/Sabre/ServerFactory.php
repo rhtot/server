@@ -35,6 +35,7 @@ use OCP\Files\Folder;
 use OCA\DAV\AppInfo\PluginManager;
 use OCA\DAV\DAV\ViewOnlyPlugin;
 use OCA\DAV\Files\BrowserErrorPagePlugin;
+use OCA\DAV\Service\CustomPropertiesService;
 use OCP\Files\Mount\IMountManager;
 use OCP\IConfig;
 use OCP\IDBConnection;
@@ -220,6 +221,7 @@ class ServerFactory {
 						new \OCA\DAV\DAV\CustomPropertiesBackend(
 							$objectTree,
 							$this->databaseConnection,
+							\OC::$server->get(CustomPropertiesService::class),
 							$this->userSession->getUser()
 						)
 					)

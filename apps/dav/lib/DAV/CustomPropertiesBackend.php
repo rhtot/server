@@ -26,6 +26,8 @@ namespace OCA\DAV\DAV;
 
 use Exception;
 use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCA\DAV\Connector\Sabre\Node;
+use OCA\DAV\Service\CustomPropertiesService;
 use OCP\IDBConnection;
 use OCP\IUser;
 use Sabre\DAV\PropertyStorage\Backend\BackendInterface;
@@ -99,6 +101,11 @@ class CustomPropertiesBackend implements BackendInterface {
 	private $connection;
 
 	/**
+	 * @var CustomPropertiesService
+	 */
+	private $customPropertiesService;
+
+	/**
 	 * @var IUser
 	 */
 	private $user;
@@ -118,9 +125,11 @@ class CustomPropertiesBackend implements BackendInterface {
 	public function __construct(
 		Tree $tree,
 		IDBConnection $connection,
+		CustomPropertiesService $customPropertiesService,
 		IUser $user) {
 		$this->tree = $tree;
 		$this->connection = $connection;
+		$this->customPropertiesService = $customPropertiesService;
 		$this->user = $user;
 	}
 
@@ -194,12 +203,7 @@ class CustomPropertiesBackend implements BackendInterface {
 	 * @param string $path path of node for which to delete properties
 	 */
 	public function delete($path) {
-		$statement = $this->connection->prepare(
-			'DELETE FROM `*PREFIX*properties` WHERE `userid` = ? AND `propertypath` = ?'
-		);
-		$statement->execute([$this->user->getUID(), $this->formatPath($path)]);
-		$statement->closeCursor();
-
+		$this->customPropertiesService->delete($this->user->getUID(), $path);
 		unset($this->userCache[$path]);
 	}
 
