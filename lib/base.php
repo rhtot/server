@@ -412,6 +412,13 @@ class OC {
 	}
 
 	public static function initSession() {
+		$request = self::$server->getRequest();
+		$isDavRequest = strpos($request->getRequestUri(), '/remote.php/dav') === 0 || strpos($request->getRequestUri(), '/remote.php/webdav') === 0;
+		if ($request->getHeader('Authorization') !== '' && !isset($_COOKIE[OC_Util::getInstanceId()]) && $isDavRequest) {
+			// Do not initialize the session if a request is authenticated directly
+			// unless there is a session cookie already sent along
+			return;
+		}
 		if (self::$server->getRequest()->getServerProtocol() === 'https') {
 			ini_set('session.cookie_secure', 'true');
 		}
