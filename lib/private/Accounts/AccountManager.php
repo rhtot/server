@@ -70,6 +70,13 @@ use function json_decode;
 use function json_encode;
 use function json_last_error;
 
+
+// displayname from backend workaround start
+use OC\User\Backend;
+use OCP\User\Backend\IGetDisplayNameBackend;
+// displayname from backend workaround end
+
+
 /**
  * Class AccountManager
  *
@@ -762,7 +769,16 @@ class AccountManager implements IAccountManager {
 				}
 			}
 		}
-		return $account;
+
+
+        // displayname from backend workaround start
+        if ($user->getBackend() instanceof IGetDisplayNameBackend) {
+            $account->setProperty(self::PROPERTY_DISPLAYNAME, $user->getDisplayName(),
+                                    $accountData['scope'] ?? self::SCOPE_LOCAL, $accountData['verified'] ?? self::NOT_VERIFIED);
+        }
+        // displayname from backend workaround end
+
+        return $account;
 	}
 
 	public function getAccount(IUser $user): IAccount {
