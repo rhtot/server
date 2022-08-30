@@ -59,6 +59,7 @@ interface IUser {
 	 * @return bool
 	 * @since 8.0.0
 	 */
+
 	public function setDisplayName($displayName);
 
 	/**
