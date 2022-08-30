@@ -391,15 +391,66 @@ import { getCapabilities } from '@nextcloud/capabilities'
 		 * @param {String} message
 		 * @returns {String} HTML code to display
 		 */
-		_formatRemoteShare: function(shareWith, shareWithDisplayName, message) {
+		 _formatRemoteShare: function(shareWith, shareWithDisplayName, message) {
 			var parts = OCA.Sharing.Util._REMOTE_OWNER_REGEXP.exec(shareWith)
+			//console.error(parts);
 			if (!parts || !parts[7]) {
 				// display avatar of the user
 				var avatar = '<span class="avatar" data-username="' + escapeHTML(shareWith) + '" title="' + message + ' ' + escapeHTML(shareWithDisplayName) + '"></span>'
-				var hidden = '<span class="hidden-visually">' + message + ' ' + escapeHTML(shareWithDisplayName) + '</span> '
+				var hidden = '<span class="receiveData">' + t('files_sharing', 'Received') + '</span> '
 				return avatar + hidden
 			}
 
+			var userName = parts[2]
+			var userDomain = parts[4]
+			var server = parts[5]
+			var protocol = parts[6]
+			var serverPath = parts[8] ? parts[7] : ''; // no trailing slash on root
+
+			var tooltip = message + ' ' + userName
+			if (userDomain) {
+				tooltip += '@' + userDomain
+			}
+			if (server) {
+				tooltip += '@' + server.replace(protocol, '') + serverPath
+			}
+
+			var html = '<span class="remoteAddress" title="' + escapeHTML(tooltip) + '">'
+			html += '<span class="username">' + escapeHTML(userName) + '</span>'
+			if (userDomain) {
+				html += '<span class="userDomain">@' + escapeHTML(userDomain) + '</span>'
+			}
+			html += '</span> '
+			return html
+		},
+		/**
+		 * Format a remote address
+		 *
+		* @param {String} shareWith userid, full remote share, or whatever
+		* @param {String} shareWithDisplayName
+		* @param {String} message
+		* @returns {String} HTML code to display
+		*/
+		_formatRemoteSharewith: function(shareWith, shareWithDisplayName, message) {
+			var parts = OCA.Sharing.Util._REMOTE_OWNER_REGEXP.exec(shareWith)
+			console.error(parts);
+			if(this.validateEmail(shareWith))
+			{
+			  if (!parts || !parts[7]) {
+				// display avatar of the user
+				var avatar = '<span class="icon icon-share-magenta-user" data-username="' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWith) + '" title="' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '"></span>';
+				var hidden = '<span class="hidden-visually">' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '</span> ';
+				return avatar + hidden;
+			  }
+			}
+			else{
+			  if (!parts || !parts[7]) {
+				// display avatar of the user
+				var avatar = '<span class="avatar" data-username="' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWith) + '" title="' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '"></span>';
+				var hidden = '<span class="hidden-visually">' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '</span> ';
+				return avatar + hidden;
+			  }
+			}
 			var userName = parts[2]
 			var userDomain = parts[4]
 			var server = parts[5]

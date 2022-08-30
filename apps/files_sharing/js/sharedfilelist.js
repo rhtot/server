@@ -79,71 +79,106 @@
 			},
 
 			_createRow: function(fileData) {
-			// TODO: hook earlier and render the whole row here
-				var $tr = OCA.Files.FileList.prototype._createRow.apply(this, arguments)
-				$tr.find('.filesize').remove()
-				$tr.find('td.date').before($tr.children('td:first'))
-				$tr.find('td.filename input:checkbox').remove()
-				$tr.attr('data-share-id', _.pluck(fileData.shares, 'id').join(','))
-				if (this._sharedWithUser) {
-					$tr.attr('data-share-owner', fileData.shareOwner)
-					$tr.attr('data-mounttype', 'shared-root')
-					var permission = parseInt($tr.attr('data-permissions')) | OC.PERMISSION_DELETE
-					$tr.attr('data-permissions', permission)
-				}
-				if (this._showDeleted || this._showPending) {
-					var permission = fileData.permissions
-					$tr.attr('data-share-permissions', permission)
-				}
-
-				if (fileData.remoteId) {
-					$tr.attr('data-remote-id', fileData.remoteId)
-				}
-
-				if (fileData.shareType) {
-					$tr.attr('data-share-type', fileData.shareType)
-				}
-
-				// add row with expiration date for link only shares - influenced by _createRow of filelist
-				if (this._linksOnly) {
-					var expirationTimestamp = 0
-					if (fileData.shares && fileData.shares[0].expiration !== null) {
-						expirationTimestamp = moment(fileData.shares[0].expiration).valueOf()
+				// TODO: hook earlier and render the whole row here
+					var td, simpleSize,sizeColor
+					var $tr = OCA.Files.FileList.prototype._createRow.apply(this, arguments)
+					//$tr.find('.filesize').remove()
+					$tr.find('td.filesize').before($tr.children('td:first'))
+					$tr.find('td.filename input:checkbox').remove()
+					$tr.attr('data-share-id', _.pluck(fileData.shares, 'id').join(','))
+					if (this._sharedWithUser) {
+						$tr.attr('data-share-owner', fileData.shareOwner)
+						$tr.attr('data-mounttype', 'shared-root')
+						var permission = parseInt($tr.attr('data-permissions')) | OC.PERMISSION_DELETE
+						$tr.attr('data-permissions', permission)
 					}
-					$tr.attr('data-expiration', expirationTimestamp)
-
-					// date column (1000 milliseconds to seconds, 60 seconds, 60 minutes, 24 hours)
-					// difference in days multiplied by 5 - brightest shade for expiry dates in more than 32 days (160/5)
-					var modifiedColor = Math.round((expirationTimestamp - (new Date()).getTime()) / 1000 / 60 / 60 / 24 * 5)
-					// ensure that the brightest color is still readable
-					if (modifiedColor >= 160) {
-						modifiedColor = 160
+					if (this._showDeleted || this._showPending) {
+						var permission = fileData.permissions
+						$tr.attr('data-share-permissions', permission)
 					}
 
-					var formatted
-					var text
-					if (expirationTimestamp > 0) {
-						formatted = OC.Util.formatDate(expirationTimestamp)
-						text = OC.Util.relativeModifiedDate(expirationTimestamp)
-					} else {
-						formatted = t('files_sharing', 'No expiration date set')
-						text = ''
-						modifiedColor = 160
+					// add row with expiration date for link only shares - influenced by _createRow of filelist
+					if (this._linksOnly) {
+						var expirationTimestamp = 0
+						if (fileData.shares && fileData.shares[0].expiration !== null) {
+							expirationTimestamp = moment(fileData.shares[0].expiration).valueOf()
+						}
+						$tr.attr('data-expiration', expirationTimestamp)
+
+						// date column (1000 milliseconds to seconds, 60 seconds, 60 minutes, 24 hours)
+						// difference in days multiplied by 5 - brightest shade for expiry dates in more than 32 days (160/5)
+						var modifiedColor = Math.round((expirationTimestamp - (new Date()).getTime()) / 1000 / 60 / 60 / 24 * 5)
+						// ensure that the brightest color is still readable
+						if (modifiedColor >= 160) {
+							modifiedColor = 160
+						}
+
+						var formatted
+						var text
+						if (expirationTimestamp > 0) {
+							formatted = OC.Util.formatDate(expirationTimestamp)
+							text = OC.Util.relativeModifiedDate(expirationTimestamp)
+						} else {
+							formatted = t('files_sharing', 'No expiration date set')
+							text = ''
+							modifiedColor = 160
+						}
+						var isDarkTheme = OCA.Accessibility && OCA.Accessibility.theme === 'dark'
+
+						try {
+							var maxContrastHex = window.getComputedStyle(document.documentElement)
+							.getPropertyValue('--color-text-maxcontrast').trim()
+							if (maxContrastHex.length < 4) {
+								throw Error();
+							}
+							var maxContrast = parseInt(maxContrastHex.substring(1, 3), 16)
+						} catch(error) {
+							var maxContrast = isDarkTheme ? 130 : 118
+						}
+						// size column
+						if (typeof(fileData.size) !== 'undefined' && fileData.size >= 0) {
+						simpleSize = OC.Util.humanFileSize(parseInt(fileData.size, 10), true);
+						// rgb(118, 118, 118) / #767676
+						// min. color contrast for normal text on white background according to WCAG AA
+						sizeColor = Math.round(118-Math.pow((fileData.size/(1024*1024)), 2));
+
+						// ensure that the brightest color is still readable
+						// min. color contrast for normal text on white background according to WCAG AA
+						if (sizeColor >= maxContrast) {
+							sizeColor = maxContrast;
+						}
+
+						if (isDarkTheme) {
+							sizeColor = Math.abs(sizeColor);
+							// ensure that the dimmest color is still readable
+							// min. color contrast for normal text on black background according to WCAG AA
+							if (sizeColor < maxContrast) {
+								sizeColor = maxContrast;
+							}
+						}
+						} else {
+							simpleSize = t('files', 'Pending');
+						}
+
+						td = $('<td></td>').attr({
+						"class": "filesize",
+						"style": 'color:rgb(' + sizeColor + ',' + sizeColor + ',' + sizeColor + ')'
+						}).text(simpleSize);
+						tr.append(td);
+
+						td = $('<td></td>').attr({ 'class': 'date' })
+						td.append($('<span></span>').attr({
+							'class': 'modified',
+							'title': formatted,
+							'style': 'color:rgb(' + modifiedColor + ',' + modifiedColor + ',' + modifiedColor + ')'
+						}).text(text)
+							.tooltip({ placement: 'top' })
+						)
+						tr.find('.filesize').text(simpleSize);
+						$tr.append(td)
 					}
-					td = $('<td></td>').attr({ 'class': 'date' })
-					td.append($('<span></span>').attr({
-						'class': 'modified',
-						'title': formatted,
-						'style': 'color:rgb(' + modifiedColor + ',' + modifiedColor + ',' + modifiedColor + ')'
-					}).text(text)
-						.tooltip({ placement: 'top' })
-					)
-
-					$tr.append(td)
-				}
-				return $tr
-			},
-
+					return $tr
+				},
 			/**
 		 * Set whether the list should contain outgoing shares
 		 * or incoming shares.
@@ -397,6 +432,7 @@
 							icon: OC.MimeType.getIconUrl(share.mimetype),
 							mimetype: share.mimetype,
 							hasPreview: share.has_preview,
+							size: share.size,
 							tags: share.tags || []
 						}
 						if (share.item_type === 'folder') {
