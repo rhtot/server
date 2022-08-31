@@ -343,6 +343,12 @@ class View {
 		}
 	}
 
+	protected function mkdirUpdate(Storage $storage, string $internalPath): void {
+		if ($this->updaterEnabled) {
+			$storage->getUpdater()->mkdir($internalPath);
+		}
+	}
+
 	/**
 	 * @param string $path
 	 * @return bool|mixed
@@ -1206,8 +1212,11 @@ class View {
 				if ($result && in_array('delete', $hooks)) {
 					$this->removeUpdate($storage, $internalPath);
 				}
-				if ($result && in_array('write', $hooks, true) && $operation !== 'fopen' && $operation !== 'touch') {
+				if ($result && in_array('write', $hooks,  true) && $operation !== 'fopen' && $operation !== 'touch' && $operation !== 'mkdir') {
 					$this->writeUpdate($storage, $internalPath);
+				}
+				if ($result && in_array('write', $hooks, true) && $operation === 'mkdir') {
+					$this->mkdirUpdate($storage, $internalPath);
 				}
 				if ($result && in_array('touch', $hooks)) {
 					$this->writeUpdate($storage, $internalPath, $extraParam);
