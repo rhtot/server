@@ -33,111 +33,58 @@
 			v-tooltip.auto="tooltip"
 			:href="share.shareWithLink"
 			class="sharing-entry__desc">
+			<div v-if="!share.canEdit">
 			<h5>{{ title }}<span v-if="!isUnique" class="sharing-entry__desc-unique"> ({{ share.shareWithDisplayNameUnique }})</span></h5>
-			<p v-if="hasStatus">
-				<span>{{ share.status.icon || '' }}</span>
-				<span>{{ share.status.message || '' }}</span>
-			</p>
+				<p v-if="hasStatus">
+					<span>{{ share.status.icon || '' }}</span>
+					<span>{{ share.status.message || '' }}</span>
+				</p>
+			</div>
+
+			<div id="app">
+				<template v-if="share.canEdit">
+					<!-- folder -->
+					<template v-if="isFolder && fileHasCreatePermission && config.isPublicUploadEnabled">
+						<CustomSelect
+							:title="title"
+							:options="getFolderOptions"
+							:default="sharePermissions"
+							@setSelectedOption="togglePermissions($event);"
+							class="select" />
+					</template>
+					<!-- files -->
+					<template v-else>
+						<CustomSelect
+							:title="title"
+							:options="getFileOptions"
+							:default="sharePermissions"
+							@setSelectedOption="togglePermissions($event);"
+							class="select" />
+					</template>
+				</template>
+			</div>
 		</component>
-		<Actions menu-align="right"
+		<Actions v-if="open === false"
+			menu-align="right"
 			class="sharing-entry__actions"
 			@close="onMenuClose">
-			<template v-if="share.canEdit">
-				<!-- edit permission -->
-				<ActionCheckbox ref="canEdit"
-					:checked.sync="canEdit"
-					:value="permissionsEdit"
-					:disabled="saving || !canSetEdit">
-					{{ t('files_sharing', 'Allow editing') }}
-				</ActionCheckbox>
-
-				<!-- create permission -->
-				<ActionCheckbox v-if="isFolder"
-					ref="canCreate"
-					:checked.sync="canCreate"
-					:value="permissionsCreate"
-					:disabled="saving || !canSetCreate">
-					{{ t('files_sharing', 'Allow creating') }}
-				</ActionCheckbox>
-
-				<!-- delete permission -->
-				<ActionCheckbox v-if="isFolder"
-					ref="canDelete"
-					:checked.sync="canDelete"
-					:value="permissionsDelete"
-					:disabled="saving || !canSetDelete">
-					{{ t('files_sharing', 'Allow deleting') }}
-				</ActionCheckbox>
-
-				<!-- reshare permission -->
-				<ActionCheckbox v-if="config.isResharingAllowed"
-					ref="canReshare"
-					:checked.sync="canReshare"
-					:value="permissionsShare"
-					:disabled="saving || !canSetReshare">
-					{{ t('files_sharing', 'Allow resharing') }}
-				</ActionCheckbox>
-
-				<ActionCheckbox ref="canDownload"
-					:checked.sync="canDownload"
-					v-if="isSetDownloadButtonVisible"
-					:disabled="saving || !canSetDownload">
-					{{ allowDownloadText }}
-				</ActionCheckbox>
-
-				<!-- expiration date -->
-				<ActionCheckbox :checked.sync="hasExpirationDate"
-					:disabled="config.isDefaultInternalExpireDateEnforced || saving"
-					@uncheck="onExpirationDisable">
-					{{ config.isDefaultInternalExpireDateEnforced
-						? t('files_sharing', 'Expiration date enforced')
-						: t('files_sharing', 'Set expiration date') }}
-				</ActionCheckbox>
-				<ActionInput v-if="hasExpirationDate"
-					ref="expireDate"
-					v-tooltip.auto="{
-						content: errors.expireDate,
-						show: errors.expireDate,
-						trigger: 'manual'
-					}"
-					:class="{ error: errors.expireDate}"
-					:disabled="saving"
-					:lang="lang"
-					:value="share.expireDate"
-					value-type="format"
-					icon="icon-calendar-dark"
-					type="date"
-					:disabled-date="disabledDate"
-					@update:value="onExpirationChange">
-					{{ t('files_sharing', 'Enter a date') }}
-				</ActionInput>
-
-				<!-- note -->
-				<template v-if="canHaveNote">
-					<ActionCheckbox :checked.sync="hasNote"
-						:disabled="saving"
-						@uncheck="queueUpdate('note')">
-						{{ t('files_sharing', 'Note to recipient') }}
-					</ActionCheckbox>
-					<ActionTextEditable v-if="hasNote"
-						ref="note"
-						v-tooltip.auto="{
-							content: errors.note,
-							show: errors.note,
-							trigger: 'manual'
-						}"
-						:class="{ error: errors.note}"
-						:disabled="saving"
-						:value="share.newNote || share.note"
-						icon="icon-edit"
-						@update:value="onNoteChange"
-						@submit="onNoteSubmit" />
-				</template>
-			</template>
-
+			<ActionButton v-if="share.canEdit"
+				icon="icon-settings"
+				:disabled="saving || !canSetEdit"
+				:share="share"
+				@click.prevent="editPermissions">
+				{{ t('files_sharing', 'Advanced permission') }}
+			</ActionButton>
+			<ActionButton v-if="share.canEdit"
+				icon="icon-mail"
+				:disabled="saving || !canSetEdit"
+				:share="share"
+				@click.prevent="editNotes">
+				{{ t('files_sharing', 'Send new mail') }}
+			</ActionButton>
 			<ActionButton v-if="share.canDelete"
 				icon="icon-close"
-				:disabled="saving"
+				:disabled="saving || !canSetEdit"
 				@click.prevent="onDelete">
 				{{ t('files_sharing', 'Unshare') }}
 			</ActionButton>
@@ -155,6 +102,7 @@ import ActionTextEditable from '@nextcloud/vue/dist/Components/ActionTextEditabl
 import Tooltip from '@nextcloud/vue/dist/Directives/Tooltip'
 
 import SharesMixin from '../mixins/SharesMixin'
+import CustomSelect from './CustomSelect'
 
 export default {
 	name: 'SharingEntry',
@@ -166,6 +114,7 @@ export default {
 		ActionInput,
 		ActionTextEditable,
 		Avatar,
+		CustomSelect,
 	},
 
 	directives: {
@@ -181,10 +130,33 @@ export default {
 			permissionsDelete: OC.PERMISSION_DELETE,
 			permissionsRead: OC.PERMISSION_READ,
 			permissionsShare: OC.PERMISSION_SHARE,
+
+			publicUploadRWValue: OC.PERMISSION_UPDATE | OC.PERMISSION_CREATE | OC.PERMISSION_READ | OC.PERMISSION_DELETE,
+			publicUploadRValue: OC.PERMISSION_READ,
+			publicUploadWValue: OC.PERMISSION_CREATE,
+			publicUploadEValue: OC.PERMISSION_UPDATE | OC.PERMISSION_READ,
 		}
 	},
 
 	computed: {
+		/**
+		 * Return the current share permissions
+		 * We always ignore the SHARE permission as this is used for the
+		 * federated sharing.
+		 * @returns {number}
+		 */
+		sharePermissions() {
+			return this.share.permissions & ~OC.PERMISSION_SHARE
+		},
+
+		/**
+		 * Generate a unique random id for this SharingEntry only
+		 * @returns {string}
+		 */
+		randomId() {
+			return Math.random().toString(27).substr(2)
+		},
+
 		title() {
 			let title = this.share.shareWithDisplayName
 			if (this.share.type === this.SHARE_TYPES.SHARE_TYPE_GROUP) {
@@ -221,10 +193,6 @@ export default {
 			return null
 		},
 
-		canHaveNote() {
-			return !this.isRemote
-		},
-
 		isRemote() {
 			return this.share.type === this.SHARE_TYPES.SHARE_TYPE_REMOTE
 				|| this.share.type === this.SHARE_TYPES.SHARE_TYPE_REMOTE_GROUP
@@ -240,54 +208,6 @@ export default {
 			// the share still has the permission, and the resharer is still
 			// allowed to revoke it too (but not to grant it again).
 			return (this.fileInfo.sharePermissions & OC.PERMISSION_UPDATE) || this.canEdit
-		},
-
-		/**
-		 * Can the sharer set whether the sharee can create the file ?
-		 *
-		 * @return {boolean}
-		 */
-		canSetCreate() {
-			// If the owner revoked the permission after the resharer granted it
-			// the share still has the permission, and the resharer is still
-			// allowed to revoke it too (but not to grant it again).
-			return (this.fileInfo.sharePermissions & OC.PERMISSION_CREATE) || this.canCreate
-		},
-
-		/**
-		 * Can the sharer set whether the sharee can delete the file ?
-		 *
-		 * @return {boolean}
-		 */
-		canSetDelete() {
-			// If the owner revoked the permission after the resharer granted it
-			// the share still has the permission, and the resharer is still
-			// allowed to revoke it too (but not to grant it again).
-			return (this.fileInfo.sharePermissions & OC.PERMISSION_DELETE) || this.canDelete
-		},
-
-		/**
-		 * Can the sharer set whether the sharee can reshare the file ?
-		 *
-		 * @return {boolean}
-		 */
-		canSetReshare() {
-			// If the owner revoked the permission after the resharer granted it
-			// the share still has the permission, and the resharer is still
-			// allowed to revoke it too (but not to grant it again).
-			return (this.fileInfo.sharePermissions & OC.PERMISSION_SHARE) || this.canReshare
-		},
-
-		/**
-		 * Can the sharer set whether the sharee can download the file ?
-		 *
-		 * @return {boolean}
-		 */
-		canSetDownload() {
-			// If the owner revoked the permission after the resharer granted it
-			// the share still has the permission, and the resharer is still
-			// allowed to revoke it too (but not to grant it again).
-			return (this.fileInfo.canDownload() || this.canDownload)
 		},
 
 		/**
@@ -339,18 +259,6 @@ export default {
 		},
 
 		/**
-		 * Can the sharee download files or only view them ?
-		 */
-		canDownload: {
-			get() {
-				return this.share.hasDownloadPermission
-			},
-			set(checked) {
-				this.updatePermissions({ isDownloadChecked: checked })
-			},
-		},
-
-		/**
 		 * Is this share readable
 		 * Needed for some federated shares that might have been added from file drop links
 		 */
@@ -361,44 +269,24 @@ export default {
 		},
 
 		/**
+		 * Does the current file/folder have create permissions
+		 * TODO: move to a proper FileInfo model?
+		 * @returns {boolean}
+		 */
+		fileHasCreatePermission() {
+			return !!(this.fileInfo.permissions & OC.PERMISSION_CREATE)
+		},
+
+		/**
 		 * Is the current share a folder ?
-		 *
-		 * @return {boolean}
+		 * @returns {boolean}
 		 */
 		isFolder() {
 			return this.fileInfo.type === 'dir'
 		},
 
 		/**
-		 * Does the current share have an expiration date
-		 *
-		 * @return {boolean}
-		 */
-		hasExpirationDate: {
-			get() {
-				return this.config.isDefaultInternalExpireDateEnforced || !!this.share.expireDate
-			},
-			set(enabled) {
-				this.share.expireDate = enabled
-					? this.config.defaultInternalExpirationDateString !== ''
-						? this.config.defaultInternalExpirationDateString
-						: moment().format('YYYY-MM-DD')
-					: ''
-			},
-		},
-
-		dateMaxEnforced() {
-			if (!this.isRemote) {
-				return this.config.isDefaultInternalExpireDateEnforced
-					&& moment().add(1 + this.config.defaultInternalExpireDate, 'days')
-			} else {
-				return this.config.isDefaultRemoteExpireDateEnforced
-					&& moment().add(1 + this.config.defaultRemoteExpireDate, 'days')
-			}
-		},
-
-		/**
-		 * @return {boolean}
+		 * @returns {boolean}
 		 */
 		hasStatus() {
 			if (this.share.type !== this.SHARE_TYPES.SHARE_TYPE_USER) {
@@ -408,31 +296,20 @@ export default {
 			return (typeof this.share.status === 'object' && !Array.isArray(this.share.status))
 		},
 
-		/**
-		 * @return {string}
-		 */
-		allowDownloadText() {
-			return t('files_sharing', 'Allow download')
+		getFolderOptions() {
+			const options = {}
+			options[0] = { key: this.publicUploadRValue, value: t('files_sharing', 'Read only') }
+			options[1] = { key: this.publicUploadRWValue, value: t('files_sharing', 'Read, write and upload') }
+
+			return options
 		},
 
-		/**
-		 * @return {boolean}
-		 */
-		isSetDownloadButtonVisible() {
-			const allowedMimetypes = [
-				// Office documents
-				'application/msword',
-				'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-				'application/vnd.ms-powerpoint',
-				'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-				'application/vnd.ms-excel',
-				'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-				'application/vnd.oasis.opendocument.text',
-				'application/vnd.oasis.opendocument.spreadsheet',
-				'application/vnd.oasis.opendocument.presentation',
-			]
+		getFileOptions() {
+			const options = {}
+			options[0] = { key: this.publicUploadRValue, value: t('files_sharing', 'Read only') }
+			options[1] = { key: this.publicUploadEValue, value: t('files_sharing', 'Read and write') }
 
-			return this.isFolder || allowedMimetypes.includes(this.fileInfo.mimetype)
+			return options
 		},
 	},
 
@@ -459,11 +336,30 @@ export default {
 			this.queueUpdate('permissions', 'attributes')
 		},
 
+		togglePermissions(option) {
+			const permissions = parseInt(option, 10)
+			| (this.canReshare ? this.permissionsShare : 0)
+			this.share.permissions = permissions
+			this.queueUpdate('permissions')
+		},
+
 		/**
 		 * Save potential changed data on menu close
 		 */
 		onMenuClose() {
 			this.onNoteSubmit()
+		},
+
+		editPermissions() {
+			this.$store.commit('addFromInput', false)
+			this.$store.commit('addShare', this.share)
+			this.$store.commit('addCurrentTab', 'permissions')
+		},
+
+		editNotes() {
+			this.$store.commit('addFromInput', false)
+			this.$store.commit('addShare', this.share)
+			this.$store.commit('addCurrentTab', 'notes')
 		},
 	},
 }
@@ -473,7 +369,7 @@ export default {
 .sharing-entry {
 	display: flex;
 	align-items: center;
-	height: 44px;
+	min-height: 44px;
 	&__desc {
 		display: flex;
 		flex-direction: column;
@@ -490,5 +386,13 @@ export default {
 	&__actions {
 		margin-left: auto;
 	}
+}
+
+.sharing-entry__desc {
+	overflow: inherit !important;
+}
+
+#app {
+	min-width: 250px;
 }
 </style>

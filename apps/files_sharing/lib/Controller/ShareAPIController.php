@@ -223,6 +223,7 @@ class ShareAPIController extends OCSController {
 		}
 
 		$result['mimetype'] = $node->getMimetype();
+		$result['size'] = $node->getSize();
 		$result['has_preview'] = $this->previewManager->isAvailable($node);
 		$result['storage_id'] = $node->getStorage()->getId();
 		$result['storage'] = $node->getStorage()->getCache()->getNumericStorageId();
@@ -444,6 +445,8 @@ class ShareAPIController extends OCSController {
 	 * @param string $expireDate
 	 * @param string $label
 	 * @param string $attributes
+	 * @param string $hideDownload
+	 * @param string $note
 	 *
 	 * @return DataResponse
 	 * @throws NotFoundException
@@ -465,6 +468,7 @@ class ShareAPIController extends OCSController {
 		string $expireDate = '',
 		string $note = '',
 		string $label = '',
+		string $hideDownload = null,
 		string $attributes = null
 	): DataResponse {
 		$share = $this->shareManager->newShare();
@@ -534,6 +538,15 @@ class ShareAPIController extends OCSController {
 			}
 			$share->setSharedWith($shareWith);
 			$share->setPermissions($permissions);
+
+			if ($expireDate !== '') {
+				try {
+					$expireDate = $this->parseDate($expireDate);
+					$share->setExpirationDate($expireDate);
+				} catch (\Exception $e) {
+					throw new OCSNotFoundException($this->l->t('Invalid date, date format must be YYYY-MM-DD'));
+				}
+			}
 		} elseif ($shareType === IShare::TYPE_GROUP) {
 			if (!$this->shareManager->allowGroupSharing()) {
 				throw new OCSNotFoundException($this->l->t('Group sharing is disabled by the administrator'));
@@ -545,6 +558,15 @@ class ShareAPIController extends OCSController {
 			}
 			$share->setSharedWith($shareWith);
 			$share->setPermissions($permissions);
+
+			if ($expireDate !== '') {
+				try {
+					$expireDate = $this->parseDate($expireDate);
+					$share->setExpirationDate($expireDate);
+				} catch (\Exception $e) {
+					throw new OCSNotFoundException($this->l->t('Invalid date, date format must be YYYY-MM-DD'));
+				}
+			}
 		} elseif ($shareType === IShare::TYPE_LINK
 			|| $shareType === IShare::TYPE_EMAIL) {
 
@@ -570,6 +592,13 @@ class ShareAPIController extends OCSController {
 					Constants::PERMISSION_DELETE;
 			} else {
 				$permissions = Constants::PERMISSION_READ;
+			}
+
+			// Update hide download state
+			if ($hideDownload === 'true') {
+				$share->setHideDownload(true);
+			} elseif ($hideDownload === 'false') {
+				$share->setHideDownload(false);
 			}
 
 			// TODO: It might make sense to have a dedicated setting to allow/deny converting link shares into federated ones

@@ -21,17 +21,46 @@
   -->
 
 <template>
-	<li :class="{'sharing-entry--share': share}" class="sharing-entry sharing-entry__link">
+	<li :class="isEmailShareType ? 'email-share-link sharing-entry sharing-entry__link' : 'link-share-link sharing-entry sharing-entry__link'">
 		<Avatar :is-no-user="true"
 			:icon-class="isEmailShareType ? 'avatar-link-share icon-mail-white' : 'avatar-link-share icon-public-white'"
 			class="sharing-entry__avatar" />
 		<div class="sharing-entry__desc">
-			<h5 :title="title">
-				{{ title }}
-			</h5>
-			<p v-if="subtitle">
-				{{ subtitle }}
-			</p>
+			<div v-if="!share.canEdit">
+				<h5 :title="title">
+					{{ title }}
+				</h5>
+				<p v-if="subtitle">
+					{{ subtitle }}
+				</p>
+			</div>
+
+			<div id="app">
+				<template v-if="share">
+					<template v-if="share.canEdit">
+						<!-- folder -->
+						<template v-if="isFolder && fileHasCreatePermission && config.isPublicUploadEnabled">
+							<CustomSelect
+								:title="title"
+								:options="getFolderOptions"
+								:default="sharePermissions"
+								@setSelectedOption="togglePermissions($event);"
+								class="select" />
+						</template>
+
+						<!-- file -->
+						<template v-else>
+							<CustomSelect
+								:title="title"
+								:isDisable="true"
+								:options="getFileOptions"
+								:default="sharePermissions"
+								@setSelectedOption="togglePermissions($event);"
+								class="select" />
+						</template>
+					</template>
+				</template>
+			</div>
 		</div>
 
 		<!-- clipboard -->
@@ -105,7 +134,7 @@
 				}"
 				class="share-link-expire-date"
 				:disabled="saving"
-
+				:first-day-of-week="firstDay"
 				:lang="lang"
 				icon=""
 				type="date"
@@ -131,166 +160,32 @@
 			:open.sync="open"
 			@close="onMenuClose">
 			<template v-if="share">
-				<template v-if="share.canEdit && canReshare">
-					<!-- Custom Label -->
-					<ActionInput ref="label"
-						v-tooltip.auto="{
-							content: errors.label,
-							show: errors.label,
-							trigger: 'manual',
-							defaultContainer: '.app-sidebar'
-						}"
-						:class="{ error: errors.label }"
-						:disabled="saving"
-						:aria-label="t('files_sharing', 'Share label')"
-						:value="share.newLabel !== undefined ? share.newLabel : share.label"
-						icon="icon-edit"
-						maxlength="255"
-						@update:value="onLabelChange"
-						@submit="onLabelSubmit">
-						{{ t('files_sharing', 'Share label') }}
-					</ActionInput>
-
-					<SharePermissionsEditor :can-reshare="canReshare"
-						:share.sync="share"
-						:file-info="fileInfo" />
-
-					<ActionSeparator />
-
-					<ActionCheckbox :checked.sync="share.hideDownload"
-						:disabled="saving || canChangeHideDownload"
-						@change="queueUpdate('hideDownload')">
-						{{ t('files_sharing', 'Hide download') }}
-					</ActionCheckbox>
-
-					<!-- password -->
-					<ActionCheckbox :checked.sync="isPasswordProtected"
-						:disabled="config.enforcePasswordForPublicLink || saving"
-						class="share-link-password-checkbox"
-						@uncheck="onPasswordDisable">
-						{{ config.enforcePasswordForPublicLink
-							? t('files_sharing', 'Password protection (enforced)')
-							: t('files_sharing', 'Password protect') }}
-					</ActionCheckbox>
-					<ActionInput v-if="isPasswordProtected"
-						ref="password"
-						v-tooltip.auto="{
-							content: errors.password,
-							show: errors.password,
-							trigger: 'manual',
-							defaultContainer: '#app-sidebar'
-						}"
-						class="share-link-password"
-						:class="{ error: errors.password}"
-						:disabled="saving"
-						:required="config.enforcePasswordForPublicLink"
-						:value="hasUnsavedPassword ? share.newPassword : '***************'"
-						icon="icon-password"
-						autocomplete="new-password"
-						:type="hasUnsavedPassword ? 'text': 'password'"
-						@update:value="onPasswordChange"
-						@submit="onPasswordSubmit">
-						{{ t('files_sharing', 'Enter a password') }}
-					</ActionInput>
-					<ActionText v-if="isEmailShareType && passwordExpirationTime" icon="icon-info">
-						{{ t('files_sharing', 'Password expires {passwordExpirationTime}', {passwordExpirationTime}) }}
-					</ActionText>
-					<ActionText v-else-if="isEmailShareType && passwordExpirationTime !== null" icon="icon-error">
-						{{ t('files_sharing', 'Password expired') }}
-					</ActionText>
-
-					<!-- password protected by Talk -->
-					<ActionCheckbox v-if="isPasswordProtectedByTalkAvailable"
-						:checked.sync="isPasswordProtectedByTalk"
-						:disabled="!canTogglePasswordProtectedByTalkAvailable || saving"
-						class="share-link-password-talk-checkbox"
-						@change="onPasswordProtectedByTalkChange">
-						{{ t('files_sharing', 'Video verification') }}
-					</ActionCheckbox>
-
-					<!-- expiration date -->
-					<ActionCheckbox :checked.sync="hasExpirationDate"
-						:disabled="config.isDefaultExpireDateEnforced || saving"
-						class="share-link-expire-date-checkbox"
-						@uncheck="onExpirationDisable">
-						{{ config.isDefaultExpireDateEnforced
-							? t('files_sharing', 'Expiration date (enforced)')
-							: t('files_sharing', 'Set expiration date') }}
-					</ActionCheckbox>
-					<ActionInput v-if="hasExpirationDate"
-						ref="expireDate"
-						v-tooltip.auto="{
-							content: errors.expireDate,
-							show: errors.expireDate,
-							trigger: 'manual',
-							defaultContainer: '#app-sidebar'
-						}"
-						class="share-link-expire-date"
-						:class="{ error: errors.expireDate}"
-						:disabled="saving"
-						:lang="lang"
-						:value="share.expireDate"
-						value-type="format"
-						icon="icon-calendar-dark"
-						type="date"
-						:disabled-date="disabledDate"
-						@update:value="onExpirationChange">
-						{{ t('files_sharing', 'Enter a date') }}
-					</ActionInput>
-
-					<!-- note -->
-					<ActionCheckbox :checked.sync="hasNote"
-						:disabled="saving"
-						@uncheck="queueUpdate('note')">
-						{{ t('files_sharing', 'Note to recipient') }}
-					</ActionCheckbox>
-					<ActionTextEditable v-if="hasNote"
-						ref="note"
-						v-tooltip.auto="{
-							content: errors.note,
-							show: errors.note,
-							trigger: 'manual',
-							defaultContainer: '#app-sidebar'
-						}"
-						:class="{ error: errors.note}"
-						:disabled="saving"
-						:placeholder="t('files_sharing', 'Enter a note for the share recipient')"
-						:value="share.newNote || share.note"
-						icon="icon-edit"
-						@update:value="onNoteChange"
-						@submit="onNoteSubmit" />
-				</template>
-
-				<ActionSeparator />
-
-				<!-- external actions -->
-				<ExternalShareAction v-for="action in externalLinkActions"
-					:id="action.id"
-					:key="action.id"
-					:action="action"
-					:file-info="fileInfo"
-					:share="share" />
-
-				<!-- external legacy sharing via url (social...) -->
-				<ActionLink v-for="({icon, url, name}, index) in externalLegacyLinkActions"
+				<!-- external sharing via url (social...) -->
+				<ActionLink v-for="({icon, url, name}, index) in externalActions"
 					:key="index"
 					:href="url(shareLink)"
 					:icon="icon"
 					target="_blank">
 					{{ name }}
 				</ActionLink>
+				<ActionButton v-if="share.canEdit"
+					icon="icon-settings"
+					:disabled="saving"
+					@click.prevent="editPermissions">
+					{{ t('files_sharing', 'Advanced permission') }}
+				</ActionButton>
+				<ActionButton v-if="share.canEdit && isEmailShareType"
+					icon="icon-mail"
+					:disabled="saving"
+					@click.prevent="editNotes">
+					{{ t('files_sharing', 'Send new mail') }}
+				</ActionButton>
 
 				<ActionButton v-if="share.canDelete"
 					icon="icon-close"
 					:disabled="saving"
 					@click.prevent="onDelete">
 					{{ t('files_sharing', 'Unshare') }}
-				</ActionButton>
-				<ActionButton v-if="!isEmailShareType && canReshare"
-					class="new-share-link"
-					icon="icon-add"
-					@click.prevent.stop="onNewLinkShare">
-					{{ t('files_sharing', 'Add another link') }}
 				</ActionButton>
 			</template>
 
@@ -316,19 +211,16 @@ import Vue from 'vue'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
 import ActionCheckbox from '@nextcloud/vue/dist/Components/ActionCheckbox'
 import ActionInput from '@nextcloud/vue/dist/Components/ActionInput'
-import ActionLink from '@nextcloud/vue/dist/Components/ActionLink'
 import ActionText from '@nextcloud/vue/dist/Components/ActionText'
-import ActionSeparator from '@nextcloud/vue/dist/Components/ActionSeparator'
-import ActionTextEditable from '@nextcloud/vue/dist/Components/ActionTextEditable'
+import ActionLink from '@nextcloud/vue/dist/Components/ActionLink'
 import Actions from '@nextcloud/vue/dist/Components/Actions'
 import Avatar from '@nextcloud/vue/dist/Components/Avatar'
 import Tooltip from '@nextcloud/vue/dist/Directives/Tooltip'
 
-import ExternalShareAction from './ExternalShareAction'
-import SharePermissionsEditor from './SharePermissionsEditor'
 import GeneratePassword from '../utils/GeneratePassword'
 import Share from '../models/Share'
 import SharesMixin from '../mixins/SharesMixin'
+import CustomSelect from './CustomSelect'
 
 export default {
 	name: 'SharingEntryLink',
@@ -340,11 +232,8 @@ export default {
 		ActionInput,
 		ActionLink,
 		ActionText,
-		ActionTextEditable,
-		ActionSeparator,
 		Avatar,
-		ExternalShareAction,
-		SharePermissionsEditor,
+		CustomSelect,
 	},
 
 	directives: {
@@ -368,16 +257,36 @@ export default {
 			// Are we waiting for password/expiration date
 			pending: false,
 
-			ExternalLegacyLinkActions: OCA.Sharing.ExternalLinkActions.state,
-			ExternalShareActions: OCA.Sharing.ExternalShareActions.state,
+			publicUploadRWValue: OC.PERMISSION_UPDATE | OC.PERMISSION_CREATE | OC.PERMISSION_READ | OC.PERMISSION_DELETE,
+			publicUploadRValue: OC.PERMISSION_READ,
+			publicUploadWValue: OC.PERMISSION_CREATE,
+			publicUploadEValue: OC.PERMISSION_UPDATE | OC.PERMISSION_READ,
+
+			ExternalLinkActions: OCA.Sharing.ExternalLinkActions.state,
 		}
 	},
 
 	computed: {
 		/**
+		 * Return the current share permissions
+		 * We always ignore the SHARE permission as this is used for the
+		 * federated sharing.
+		 * @returns {number}
+		 */
+		sharePermissions() {
+			return this.share.permissions & ~OC.PERMISSION_SHARE
+		},
+		/**
+		 * Generate a unique random id for this SharingEntryLink only
+		 * @returns {string}
+		 */
+		randomId() {
+			return Math.random().toString(27).substr(2)
+		},
+
+		/**
 		 * Link share label
-		 *
-		 * @return {string}
+		 * @returns {string}
 		 */
 		title() {
 			// if we have a valid existing share (not pending)
@@ -399,7 +308,7 @@ export default {
 							label: this.share.label.trim(),
 						})
 					}
-					return t('files_sharing', 'Share link ({label})', {
+					return t('files_sharing', 'Link "{label}"', {
 						label: this.share.label.trim(),
 					})
 				}
@@ -407,13 +316,16 @@ export default {
 					return this.share.shareWith
 				}
 			}
-			return t('files_sharing', 'Share link')
+			if (this.fileInfo.type === 'dir') {
+				return t('files_sharing', 'Link to folder')
+			} else {
+				return t('files_sharing', 'Link to file')
+			}
 		},
 
 		/**
 		 * Show the email on a second line if a label is set for mail shares
-		 *
-		 * @return {string}
+		 * @returns {string}
 		 */
 		subtitle() {
 			if (this.isEmailShareType
@@ -424,36 +336,8 @@ export default {
 		},
 
 		/**
-		 * Does the current share have an expiration date
-		 *
-		 * @return {boolean}
-		 */
-		hasExpirationDate: {
-			get() {
-				return this.config.isDefaultExpireDateEnforced
-					|| !!this.share.expireDate
-			},
-			set(enabled) {
-				let dateString = moment(this.config.defaultExpirationDateString)
-				if (!dateString.isValid()) {
-					dateString = moment()
-				}
-				this.share.state.expiration = enabled
-					? dateString.format('YYYY-MM-DD')
-					: ''
-				console.debug('Expiration date status', enabled, this.share.expireDate)
-			},
-		},
-
-		dateMaxEnforced() {
-			return this.config.isDefaultExpireDateEnforced
-				&& moment().add(1 + this.config.defaultExpireDate, 'days')
-		},
-
-		/**
 		 * Is the current share password protected ?
-		 *
-		 * @return {boolean}
+		 * @returns {boolean}
 		 */
 		isPasswordProtected: {
 			get() {
@@ -467,52 +351,6 @@ export default {
 			},
 		},
 
-		passwordExpirationTime() {
-			if (this.share.passwordExpirationTime === null) {
-				return null
-			}
-
-			const expirationTime = moment(this.share.passwordExpirationTime)
-
-			if (expirationTime.diff(moment()) < 0) {
-				return false
-			}
-
-			return expirationTime.fromNow()
-		},
-
-		/**
-		 * Is Talk enabled?
-		 *
-		 * @return {boolean}
-		 */
-		isTalkEnabled() {
-			return OC.appswebroots.spreed !== undefined
-		},
-
-		/**
-		 * Is it possible to protect the password by Talk?
-		 *
-		 * @return {boolean}
-		 */
-		isPasswordProtectedByTalkAvailable() {
-			return this.isPasswordProtected && this.isTalkEnabled
-		},
-
-		/**
-		 * Is the current share password protected by Talk?
-		 *
-		 * @return {boolean}
-		 */
-		isPasswordProtectedByTalk: {
-			get() {
-				return this.share.sendPasswordByTalk
-			},
-			async set(enabled) {
-				this.share.sendPasswordByTalk = enabled
-			},
-		},
-
 		/**
 		 * Is the current share an email share ?
 		 *
@@ -522,20 +360,6 @@ export default {
 			return this.share
 				? this.share.type === this.SHARE_TYPES.SHARE_TYPE_EMAIL
 				: false
-		},
-
-		canTogglePasswordProtectedByTalkAvailable() {
-			if (!this.isPasswordProtected) {
-				// Makes no sense
-				return false
-			} else if (this.isEmailShareType && !this.hasUnsavedPassword) {
-				// For email shares we need a new password in order to enable or
-				// disable
-				return false
-			}
-
-			// Anything else should be fine
-			return true
 		},
 
 		/**
@@ -556,6 +380,24 @@ export default {
 		// the user deleted the original password
 		hasUnsavedPassword() {
 			return this.share.newPassword !== undefined
+		},
+
+		/**
+		 * Is the current share a folder ?
+		 * TODO: move to a proper FileInfo model?
+		 * @returns {boolean}
+		 */
+		isFolder() {
+			return this.fileInfo.type === 'dir'
+		},
+
+		/**
+		 * Does the current file/folder have create permissions
+		 * TODO: move to a proper FileInfo model?
+		 * @returns {boolean}
+		 */
+		fileHasCreatePermission() {
+			return !!(this.fileInfo.permissions & OC.PERMISSION_CREATE)
 		},
 
 		/**
@@ -582,35 +424,32 @@ export default {
 		},
 
 		/**
-		 * External additionnai actions for the menu
-		 *
-		 * @deprecated use OCA.Sharing.ExternalShareActions
-		 * @return {Array}
+		 * External aditionnal actions for the menu
+		 * @returns {Array}
 		 */
-		externalLegacyLinkActions() {
-			return this.ExternalLegacyLinkActions.actions
-		},
-
-		/**
-		 * Additional actions for the menu
-		 *
-		 * @return {Array}
-		 */
-		externalLinkActions() {
-			// filter only the registered actions for said link
-			return this.ExternalShareActions.actions
-				.filter(action => action.shareType.includes(ShareTypes.SHARE_TYPE_LINK)
-					|| action.shareType.includes(ShareTypes.SHARE_TYPE_EMAIL))
+		externalActions() {
+			return this.ExternalLinkActions.actions
 		},
 
 		isPasswordPolicyEnabled() {
 			return typeof this.config.passwordPolicy === 'object'
 		},
 
-		canChangeHideDownload() {
-			const hasDisabledDownload = (shareAttribute) => shareAttribute.key === 'download' && shareAttribute.scope === 'permissions' && shareAttribute.enabled === false
+		getFolderOptions() {
+			const options = {}
+			options[0] = { key: this.publicUploadRValue, value: t('files_sharing', 'Read only') }
+			options[1] = { key: this.publicUploadRWValue, value: t('files_sharing', 'Read, write and upload') }
+			options[2] = { key: this.publicUploadWValue, value: t('files_sharing', 'File drop (upload only)') }
 
-			return this.fileInfo.shareAttributes.some(hasDisabledDownload)
+			return options
+		},
+
+		getFileOptions() {
+			const options = {}
+			options[0] = { key: this.publicUploadRValue, value: t('files_sharing', 'Read only') }
+			options[1] = { key: this.publicUploadEValue, value: t('files_sharing', 'Read and write') }
+
+			return options
 		},
 	},
 
@@ -751,26 +590,18 @@ export default {
 				this.loading = false
 			}
 		},
+		
+		togglePermissions(option) {
+			const permissions = parseInt(option, 10)
+			this.share.permissions = permissions
+			this.queueUpdate('permissions')
 
-		/**
-		 * Label changed, let's save it to a different key
-		 *
-		 * @param {string} label the share label
-		 */
-		onLabelChange(label) {
-			this.$set(this.share, 'newLabel', label.trim())
-		},
-
-		/**
-		 * When the note change, we trim, save and dispatch
-		 */
-		onLabelSubmit() {
-			if (typeof this.share.newLabel === 'string') {
-				this.share.label = this.share.newLabel
-				this.$delete(this.share, 'newLabel')
-				this.queueUpdate('label')
+			if (permissions === OC.PERMISSION_CREATE) {
+				this.share.hideDownload = false
+				this.queueUpdate('hideDownload')
 			}
 		},
+
 		async copyLink() {
 			try {
 				await this.$copyText(this.shareLink)
@@ -788,20 +619,6 @@ export default {
 					this.copied = false
 				}, 4000)
 			}
-		},
-
-		/**
-		 * Update newPassword values
-		 * of share. If password is set but not newPassword
-		 * then the user did not changed the password
-		 * If both co-exists, the password have changed and
-		 * we show it in plain text.
-		 * Then on submit (or menu close), we sync it.
-		 *
-		 * @param {string} password the changed password
-		 */
-		onPasswordChange(password) {
-			this.$set(this.share, 'newPassword', password)
 		},
 
 		/**
@@ -839,22 +656,6 @@ export default {
 		},
 
 		/**
-		 * Update the password along with "sendPasswordByTalk".
-		 *
-		 * If the password was modified the new password is sent; otherwise
-		 * updating a mail share would fail, as in that case it is required that
-		 * a new password is set when enabling or disabling
-		 * "sendPasswordByTalk".
-		 */
-		onPasswordProtectedByTalkChange() {
-			if (this.hasUnsavedPassword) {
-				this.share.password = this.share.newPassword.trim()
-			}
-
-			this.queueUpdate('sendPasswordByTalk', 'password')
-		},
-
-		/**
 		 * Save potential changed data on menu close
 		 */
 		onMenuClose() {
@@ -871,6 +672,18 @@ export default {
 			// but is incomplete as not pushed to server
 			// YET. We can safely delete the share :)
 			this.$emit('remove:share', this.share)
+		},
+
+		editPermissions() {
+			this.$store.commit('addFromInput', false)
+			this.$store.commit('addShare', this.share)
+			this.$store.commit('addCurrentTab', 'permissions')
+		},
+
+		editNotes() {
+			this.$store.commit('addFromInput', false)
+			this.$store.commit('addShare', this.share)
+			this.$store.commit('addCurrentTab', 'notes')
 		},
 	},
 }
@@ -934,5 +747,13 @@ export default {
 	.icon-checkmark-color {
 		opacity: 1;
 	}
+}
+
+.sharing-entry__desc {
+	overflow: inherit !important;
+}
+
+#app {
+	min-width: 250px;
 }
 </style>
