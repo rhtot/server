@@ -374,7 +374,7 @@ import { getCapabilities } from '@nextcloud/capabilities'
 				if(c=="sharingout"){	
 					avatars='';	
 
-				avatars = '<span>' + t('files_sharing', 'Shared') + '</span>'
+				avatars = '<span>' + t('files_sharing', '') + '</span>'
 				// even if reshared, only show "Shared by"
 				if (ownerId) {
 					message = t('files_sharing', 'Shared by')
