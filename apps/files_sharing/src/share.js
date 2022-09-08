@@ -322,7 +322,7 @@ import { getCapabilities } from '@nextcloud/capabilities'
 		 * @param hasShares whether shares are available
 		 * @param hasLink whether link share is available
 		 */
-		 _markFileAsShared: function($tr, hasShares, hasLink) {
+		_markFileAsShared: function($tr, hasShares, hasLink) {
 			var action = $tr.find('.fileactions .action[data-action="Share"]')
 			var type = $tr.data('type')
 			var icon = action.find('.icon')
@@ -367,18 +367,16 @@ import { getCapabilities } from '@nextcloud/capabilities'
 			var c = url.searchParams.get("view");
 
 			if (hasShares || ownerId) {
-				recipients = $tr.data('share-recipient-data');
+				recipients = $tr.data('share-recipient-data')
 				var shareTypes1 = $tr.data('share-types');
 
 				action.addClass('shared-style')
-				if(c=="sharingout"){	
-					avatars='';	
 
-				avatars = '<span>' + t('files_sharing', '') + '</span>'
-				// even if reshared, only show "Shared by"
+				if(c=="sharingout"){
+				  avatars='';
 				if (ownerId) {
-					message = t('files_sharing', 'Shared by')
-					avatars = OCA.Sharing.Util._formatRemoteShare(ownerId, owner, message)
+					message = t('files_sharing', 'Shared by');
+					avatars= OCA.Sharing.Util._formatRemoteShare(ownerId, owner, message);
 				} else if (recipients) {
 					avatars = OCA.Sharing.Util._formatShareList(recipients);
 				}
@@ -392,33 +390,30 @@ import { getCapabilities } from '@nextcloud/capabilities'
 					message = t('files_sharing', 'Shared by');
 					avatars = OCA.Sharing.Util._formatRemoteShare(ownerId, owner, message);
 				} else if (recipients) {
-					console.log("recipients: "+recipients)
 					avatars = OCA.Sharing.Util._formatShareList(recipients);
 				}
-			}
-			action.html(avatars).prepend(icon)
-			if (ownerId || recipients) {
-				var avatarElement = action.find('.avatar')
-				avatarElement.each(function() {
-					$(this).avatar($(this).data('username'), 32)
-				})
-				action.find('span[title]').tooltip({ placement: 'top' })
-			}
-		} else {
-			action.html('<span class="hidden-visually">' + t('files_sharing', 'Shared') + '</span>').prepend(icon)
-		}
+				}
+				action.html(avatars).prepend(icon)
 
-		if(c=="sharingout"){
-			iconClass = '';
-			icon.removeClass('icon-shared icon-public').addClass(iconClass);
-		  }
-		  else{
-			iconClass = 'icon-public';
-			icon.removeClass('icon-shared icon-public').addClass(iconClass);
-		  }
-
+				if (ownerId || recipients) {
+					var avatarElement = action.find('.avatar')
+					avatarElement.each(function() {
+						$(this).avatar($(this).data('username'), 32)
+					})
+					action.find('span[title]').tooltip({ placement: 'top' })
+				}
+			} else {
+				action.html('<span class="hidden-visually">' + t('files_sharing', 'Shared') + '</span>').prepend(icon)
+			}
+			if(c=="sharingout"){
+				iconClass = '';
+				icon.removeClass('icon-shared icon-public').addClass(iconClass);
+			  }
+			  else{
+				iconClass = 'icon-public';
+				icon.removeClass('icon-shared icon-public').addClass(iconClass);
+			  }
 		},
-		
 		/**
 		 * Format a remote address
 		 *
@@ -459,34 +454,36 @@ import { getCapabilities } from '@nextcloud/capabilities'
 			html += '</span> '
 			return html
 		},
+
 		/**
 		 * Format a remote address
 		 *
-		* @param {String} shareWith userid, full remote share, or whatever
-		* @param {String} shareWithDisplayName
-		* @param {String} message
-		* @returns {String} HTML code to display
-		*/
-		_formatRemoteSharewith: function(shareWith, shareWithDisplayName, message) {
+		 * @param {String} shareWith userid, full remote share, or whatever
+		 * @param {String} shareWithDisplayName
+		 * @param {String} message
+		 * @returns {String} HTML code to display
+		 */
+		 _formatRemoteSharewith: function(shareWith, shareWithDisplayName, message) {
 			var parts = OCA.Sharing.Util._REMOTE_OWNER_REGEXP.exec(shareWith)
-			console.error(parts);
 			if(this.validateEmail(shareWith))
 			{
-			  if (!parts || !parts[7]) {
-				// display avatar of the user
-				var avatar = '<span class="icon icon-share-magenta-user" data-username="' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWith) + '" title="' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '"></span>';
-				var hidden = '<span class="hidden-visually">' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '</span> ';
-				return avatar + hidden;
-			  }
+				if (!parts || !parts[7]) {
+					// display avatar of the user
+					var avatar = '<span class="icon icon-share-magenta-user" data-username="' + escapeHTML(shareWith) + '" title="' + message + ' ' + escapeHTML(shareWithDisplayName) + '"></span>'
+					var hidden = '<span class="hidden-visually">' + message + ' ' + escapeHTML(shareWithDisplayName) + '</span> '
+					return avatar + hidden
+				}
 			}
 			else{
-			  if (!parts || !parts[7]) {
-				// display avatar of the user
-				var avatar = '<span class="avatar" data-username="' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWith) + '" title="' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '"></span>';
-				var hidden = '<span class="hidden-visually">' + message + ' ' + escape_html__WEBPACK_IMPORTED_MODULE_0___default()(shareWithDisplayName) + '</span> ';
-				return avatar + hidden;
-			  }
+				if (!parts || !parts[7]) {
+					// display avatar of the user
+					var avatar = '<span class="avatar" data-username="' + escapeHTML(shareWith) + '" title="' + message + ' ' + escapeHTML(shareWithDisplayName) + '"></span>'
+					var hidden = '<span class="hidden-visually">' + message + ' ' + escapeHTML(shareWithDisplayName) + '</span> '
+					return avatar + hidden
+				}
 			}
+
+
 			var userName = parts[2]
 			var userDomain = parts[4]
 			var server = parts[5]
@@ -528,18 +525,11 @@ import { getCapabilities } from '@nextcloud/capabilities'
 			var externalSkip=0;
 			var internalSkip=0;
 			recipients = _.toArray(recipients);
-			recipients.sort(function (a, b) {
-			  return a.shareWithDisplayName.localeCompare(b.shareWithDisplayName);
-			});
-			// return $.map(recipients, function (recipient) {
-			//   return _parent._formatRemoteSharewith(recipient.shareWith, recipient.shareWithDisplayName, t('files_sharing', 'Shared with'));
-			// });
-			$.each(recipients, function(key,val) {   
-
+			$.each(recipients, function(key,val) {
 				if (_parent.validateEmail(val.shareWith)) {
 					externalCount+=1;
 					if(externalCount >2 && externalSkip==0){
-					  externalShare +="...";  
+					  externalShare +="...";
 					  externalSkip=1;
 					}
 					else{
@@ -550,26 +540,25 @@ import { getCapabilities } from '@nextcloud/capabilities'
 					internalCount+=1;
 					if(internalCount >2 && internalSkip==0){
 					  returnVal +=  "...";
-					  internalSkip=1;  
+					  internalSkip=1;
 					}
 					else{
 					  Normalfirstname = val.shareWith;
 					  returnVal += val.shareWithDisplayName + ", ";
 					}
-
-				  }
-			}); 
+				}
+			});
 
 			externalShare = externalShare.replace(/,\s*$/, "");
 			if(externalShare!==""){
-				finalVal+= _parent._formatRemoteSharewith(firstname, externalShare, t('files_sharing', 'Shared with'));              
+				finalVal+= _parent._formatRemoteSharewith(firstname, externalShare, t('files_sharing', 'Shared with'));
 
 			  }
 			returnVal = returnVal.replace(/,\s*$/, "");
 			if(returnVal!==""){
 				finalVal+= _parent._formatRemoteSharewith(Normalfirstname, returnVal, t('files_sharing', 'Shared with'));
 			}
-			
+
 			 return finalVal;
 		},
 
@@ -579,9 +568,9 @@ import { getCapabilities } from '@nextcloud/capabilities'
 		{
 		  let regexEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 		  if (emailAdress.match(regexEmail)) {
-			return true; 
+			return true;
 		  } else {
-			return false; 
+			return false;
 		  }
 		},
 
