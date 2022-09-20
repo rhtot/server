@@ -1462,8 +1462,8 @@ const Dialogs = {
 	 * @private
 	 */
 	_changeButtonsText: function(type, dir) {
-		var copyText = dir === '' ? t('core', 'Copy') : t('core', 'Copy to {folder}', { folder: dir })
-		var moveText = dir === '' ? t('core', 'Move') : t('core', 'Move to {folder}', { folder: dir })
+		var copyText = dir === '' ? t('core', 'Copy') : t('core', 'Copy', { folder: dir })
+		var moveText = dir === '' ? t('core', 'Move') : t('core', 'Move', { folder: dir })
 		var buttons = $('.oc-dialog-buttonrow button')
 		switch (type) {
 			case this.FILEPICKER_TYPE_CHOOSE:
