@@ -64,14 +64,13 @@ try {
 
 	$logger = \OC::$server->getLogger();
 	$config = \OC::$server->getConfig();
-	$tempManager = \OC::$server->getTempManager();
 
 	// Don't do anything if Nextcloud has not been installed
 	if (!$config->getSystemValue('installed', false)) {
 		exit(0);
 	}
 
-	$tempManager->cleanOld();
+	\OC::$server->getTempManager()->cleanOld();
 
 	// Exit if background jobs are disabled!
 	$appMode = $config->getAppValue('core', 'backgroundjobs_mode', 'ajax');
@@ -142,8 +141,7 @@ try {
 		$endTime = time() + 14 * 60;
 
 		$executedJobs = [];
-		$jobClass = isset($argv[1]) ? $argv[1] : null;
-		while ($job = $jobList->getNext($onlyTimeSensitive, $jobClass)) {
+		while ($job = $jobList->getNext($onlyTimeSensitive)) {
 			if (isset($executedJobs[$job->getId()])) {
 				$jobList->unlockJob($job);
 				break;
@@ -151,10 +149,8 @@ try {
 
 			$logger->debug('CLI cron call has selected job with ID ' . strval($job->getId()), ['app' => 'cron']);
 			$job->execute($jobList, $logger);
-
 			// clean up after unclean jobs
 			\OC_Util::tearDownFS();
-			$tempManager->clean();
 
 			$jobList->setLastJob($job);
 			$executedJobs[$job->getId()] = true;
