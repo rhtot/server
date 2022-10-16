@@ -152,9 +152,9 @@ trait S3ObjectTrait {
 		// ($psrStream->isSeekable() && $psrStream->getSize() !== null) evaluates to true for a On-Seekable stream
 		// so the optimisation does not apply
 		$buffer = new Psr7\Stream(fopen("php://memory", 'rwb+'));
-		Utils::copyToStream($psrStream, $buffer, $this->putSizeLimit);
+		Utils::copyToStream($psrStream, $buffer, MultipartUploader::PART_MIN_SIZE);
 		$buffer->seek(0);
-		if ($buffer->getSize() < $this->putSizeLimit) {
+		if ($buffer->getSize() < MultipartUploader::PART_MIN_SIZE) {
 			// buffer is fully seekable, so use it directly for the small upload
 			$this->writeSingle($urn, $buffer, $mimetype);
 		} else {
