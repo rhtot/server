@@ -216,6 +216,7 @@ class Server {
 		));
 
 		$this->server->addPlugin(new CopyEtagHeaderPlugin());
+		$this->server->addPlugin(new RequestIdHeaderPlugin(\OC::$server->get(IRequest::class)));
 		$this->server->addPlugin(new ChunkingV2Plugin());
 		$this->server->addPlugin(new ChunkingPlugin());
 
