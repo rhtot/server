@@ -270,12 +270,4 @@ interface IUser {
 	 * @since 9.0.0
 	 */
 	public function setQuota($quota);
-
-	/**
-	 * get the display name for the other user, if no specific display name is set it will fallback to the user id
-	 *
-	 * @return string
-	 * @since 24.0.0
-	 */
-	public function getDisplayNameOtherUser();
 }
