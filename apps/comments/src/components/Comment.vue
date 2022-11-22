@@ -69,6 +69,7 @@
 				:auto-complete="autoComplete"
 				:contenteditable="!loading"
 				:value="localMessage"
+				:placeholder="inputPlaceholder"
 				@update:value="updateLocalMessage"
 				@submit="onSubmit" />
 			<input v-tooltip="t('comments', 'Post comment')"
@@ -190,6 +191,10 @@ export default {
 		timestamp() {
 			// seconds, not milliseconds
 			return parseInt(moment(this.creationDateTime).format('x'), 10) / 1000
+		},
+
+		inputPlaceholder() {
+			return t('comments', 'Write a message...')
 		},
 	},
 

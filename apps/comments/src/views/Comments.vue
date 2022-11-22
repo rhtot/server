@@ -32,7 +32,9 @@
 
 		<template v-if="!isFirstLoading">
 			<EmptyContent v-if="!hasComments && done" icon="icon-comment">
-				{{ t('comments', 'No comments yet, start the conversation!') }}
+				<span class="empty__comment">{{ t('comments', 'No comments yet.') }}</span>
+				<br>
+				<span class="empty__comment__mesage">{{ t('comments', 'You can comment on shared content. Your messages will reach everyone with whom the file or folder is shared.') }}</span>
 			</EmptyContent>
 
 			<!-- Comments -->
