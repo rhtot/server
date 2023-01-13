@@ -268,7 +268,7 @@ OC.FileUpload.prototype = {
 			var headers = {};
 			if (OC.getCapabilities().dav.chunking === '2.0') {
 				headers = {
-					'X-Chunking-Destination': this.getTargetDestination()
+					'X-Chunking-Destination': this.uploader.davClient._buildUrl(this.getTargetDestination())
 				};
 			}
 
@@ -314,7 +314,7 @@ OC.FileUpload.prototype = {
 			headers['OC-Total-Length'] = size;
 		}
 		if (OC.getCapabilities().dav.chunking === '2.0') {
-			headers['X-Chunking-Destination'] = this.getTargetDestination();
+			headers['X-Chunking-Destination'] = this.uploader.davClient._buildUrl(this.getTargetDestination());
 		}
 
 		return this.uploader.davClient.move(
@@ -1365,7 +1365,7 @@ OC.Uploader.prototype = _.extend({
 					if (OC.getCapabilities().dav.chunking === '2.0') {
 						// Calculate chunk index for usage with s3
 						chunkId = Math.ceil((data.chunkSize+Number(chunkId)) / upload.uploader.fileUploadParam.maxChunkSize);
-						data.headers['X-Chunking-Destination'] = upload.getTargetDestination();
+						data.headers['X-Chunking-Destination'] = self.davClient._buildUrl(upload.getTargetDestination());
 					}
 
 					data.url = OC.getRootPath() +
