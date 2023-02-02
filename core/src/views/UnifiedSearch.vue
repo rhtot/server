@@ -123,7 +123,7 @@
 </template>
 
 <script>
-import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
+import { emit } from '@nextcloud/event-bus'
 import { minSearchLength, getTypes, search, defaultLimit, regexFilterIn, regexFilterNot } from '../services/UnifiedSearchService'
 import { showError } from '@nextcloud/dialogs'
 
@@ -300,13 +300,8 @@ export default {
 	},
 
 	async created() {
-		subscribe('files:navigation:changed', this.resetForm)
 		this.types = await getTypes()
 		this.logger.debug('Unified Search initialized with the following providers', this.types)
-	},
-
-	beforeDestroy() {
-		unsubscribe('files:navigation:changed', this.resetForm)
 	},
 
 	mounted() {
@@ -341,10 +336,6 @@ export default {
 		},
 		onClose() {
 			emit('nextcloud:unified-search.close')
-		},
-
-		resetForm() {
-			this.$el.querySelector('form[role="search"]').reset()
 		},
 
 		/**
