@@ -61,7 +61,7 @@
 				<ActionRadio :checked="sharePermissions === publicUploadRValue"
 					:value="publicUploadRValue"
 					:name="randomId"
-					:disabled="true"
+					:disabled="isAllowed"
 					@change="addPermissions">
 					{{ t('files_sharing', 'Read only') }}
 				</ActionRadio>
@@ -72,7 +72,7 @@
 
 				<ActionRadio :checked="sharePermissions === publicUploadEValue"
 					:value="publicUploadEValue"
-					:disabled="true"
+					:disabled="isAllowed"
 					:name="randomId"
 					@change="addPermissions">
 					{{ t('files_sharing', 'Read and write') }}
@@ -313,10 +313,19 @@ export default {
 			showAdLink: true,
 			sendPasswordByTalk: null,
 			hideDownload: null,
-
+			isAllowed:true,
+			allowExtensions:["text/markdown","text/plain","application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","application/vnd.openxmlformats-officedocument.presentationml.presentation"],
 			shareLabel: this.share.newLabel || this.share.label || '',
 			ExternalShareActions: OCA.Sharing.ExternalShareActions.state,
 		}
+	},
+	beforeMount() {
+		
+		console.log("file extension : "+this.fileInfo.mimetype)
+		if(this.allowExtensions.includes( this.fileInfo.mimetype)){
+			this.isAllowed=false
+		}
+		console.log("is disabled : " + this.isAllowed)
 	},
 
 	computed: {

@@ -52,7 +52,7 @@
 						<template v-else>
 							<CustomSelect
 								:title="title"
-								:isDisable="true"
+								:isDisable="isAllowed"
 								:options="getFileOptions"
 								:default="sharePermissions"
 								@setSelectedOption="togglePermissions($event);"
@@ -261,11 +261,22 @@ export default {
 			publicUploadRValue: OC.PERMISSION_READ,
 			publicUploadWValue: OC.PERMISSION_CREATE,
 			publicUploadEValue: OC.PERMISSION_UPDATE | OC.PERMISSION_READ,
-
+			isAllowed:true,
+			allowExtensions:["text/markdown","text/plain","application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","application/vnd.openxmlformats-officedocument.presentationml.presentation"],
 			ExternalLinkActions: OCA.Sharing.ExternalLinkActions.state,
 		}
 	},
 
+	beforeMount() {
+		
+		console.log("file extension : "+this.fileInfo.mimetype)
+
+		if(this.allowExtensions.includes( this.fileInfo.mimetype)){
+			this.isAllowed=false
+		}
+		
+		console.log("is disabled : " + this.isAllowed)
+	},
 	computed: {
 		/**
 		 * Return the current share permissions
