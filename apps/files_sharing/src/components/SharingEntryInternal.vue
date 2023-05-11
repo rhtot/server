@@ -1,7 +1,7 @@
 
 <template>
 	<ul>
-		<SharingEntrySimple ref="shareEntrySimple"
+		<!-- <SharingEntrySimple ref="shareEntrySimple"
 			class="sharing-entry__internal"
 			:title="t('files_sharing', 'Internal link')"
 			:subtitle="internalLinkSubtitle">
@@ -15,7 +15,7 @@
 				target="_blank"
 				:icon="copied && copySuccess ? 'icon-checkmark-color' : 'icon-clippy'"
 				@click.prevent="copyLink" />
-		</SharingEntrySimple>
+		</SharingEntrySimple> -->
 	</ul>
 </template>
 

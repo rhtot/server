@@ -41,6 +41,12 @@
 				{{ search ? noResultText : t('files_sharing', 'No recommendations. Start typing.') }}
 			</template>
 		</NcSelect>
+		<!-- Create new share -->
+		<button v-if="canReshare"
+			class="add-new-link-btn"
+			@click.prevent.stop="onNewLinkShare">
+			{{ t('files_sharing', 'Add link') }}
+		</button>
 	</div>
 </template>
 
@@ -152,9 +158,181 @@ export default {
 
 	mounted() {
 		this.getRecommendations()
+
+		this.$root.$on('getRecommendations', data => {
+			this.getRecommendations()
+		})
 	},
 
 	methods: {
+
+		/**
+		 * Create a new share link and append it to the list
+		 */
+		async onNewLinkShare() {
+			// do not run again if already loading
+			if (this.loading) {
+				return
+			}
+			const shareDefaults = {
+				share_type: OC.Share.SHARE_TYPE_LINK,
+			}
+			if (this.config.isDefaultExpireDateEnforced) {
+				// default is empty string if not set
+				// expiration is the share object key, not expireDate
+				shareDefaults.expiration = this.config.defaultExpirationDateString
+			}
+			if (this.config.enableLinkPasswordByDefault) {
+				shareDefaults.password = await GeneratePassword()
+			}
+			// do not push yet if we need a password or an expiration date: show pending menu
+			if (this.config.enforcePasswordForPublicLink || this.config.isDefaultExpireDateEnforced) {
+				this.pending = true
+				// if a share already exists, pushing it
+				if (this.share && !this.share.id) {
+					// if the share is valid, create it on the server
+					if (this.checkShare(this.share)) {
+						await this.pushNewLinkShare(this.share, true)
+						return true
+					} else {
+						this.open = true
+						OC.Notification.showTemporary(t('files_sharing', 'Error, please enter proper password and/or expiration date'))
+						return false
+					}
+				}
+				// ELSE, show the pending popovermenu
+				// if password enforced, pre-fill with random one
+				if (this.config.enforcePasswordForPublicLink) {
+					shareDefaults.password = await GeneratePassword()
+				}
+				// create share & close menu
+				const share = new Share(shareDefaults)
+				const component = await new Promise(resolve => {
+					this.$emit('add:share', share, resolve)
+				})
+				// open the menu on the
+				// freshly created share component
+				this.open = false
+				this.pending = false
+				component.open = true
+			// Nothing is enforced, creating share directly
+			} else {
+				const share = new Share(shareDefaults)
+				await this.pushNewLinkShare(share)
+			}
+		},
+		/**
+		 * Push a new link share to the server
+		 * And update or append to the list
+		 * accordingly
+		 *
+		 * @param {Share} share the new share
+		 * @param {boolean} [update=false] do we update the current share ?
+		 */
+		async pushNewLinkShare(share, update) {
+			try {
+				// do nothing if we're already pending creation
+				if (this.loading) {
+					return true
+				}
+				// this.loading = true
+				this.errors = {}
+				const path = (this.fileInfo.path + '/' + this.fileInfo.name).replace('//', '/')
+				const newShare = await this.createShare({
+					path,
+					shareType: OC.Share.SHARE_TYPE_LINK,
+					password: share.password,
+					expireDate: share.expireDate,
+					// we do not allow setting the publicUpload
+					// before the share creation.
+					// Todo: We also need to fix the createShare method in
+					// lib/Controller/ShareAPIController.php to allow file drop
+					// (currently not supported on create, only update)
+				})
+				this.open = false
+				console.debug('Link share created', newShare)
+				// if share already exists, copy link directly on next tick
+				let component
+				if (update) {
+					component = await new Promise(resolve => {
+						this.$emit('update:share', newShare, resolve)
+					})
+				} else {
+					// adding new share to the array and copying link to clipboard
+					// using promise so that we can copy link in the same click function
+					// and avoid firefox copy permissions issue
+					component = await new Promise(resolve => {
+						this.addShare(newShare, resolve)
+						// this.$emit('add:share', newShare, resolve)
+					})
+				}
+				// Execute the copy link method
+				// freshly created share component
+				// ! somehow does not works on firefox !
+				if (!this.config.enforcePasswordForPublicLink) {
+					// Only copy the link when the password was not forced,
+					// otherwise the user needs to copy/paste the password before finishing the share.
+					component.copyLink()
+				}
+			} catch ({ response }) {
+				// const message = response.data.ocs.meta.message
+				// if (message.match(/password/i)) {
+				// 	this.onSyncError('password', message)
+				// } else if (message.match(/date/i)) {
+				// 	this.onSyncError('expireDate', message)
+				// } else {
+				// 	this.onSyncError('pending', message)
+				// }
+			} finally {
+				this.loading = false
+			}
+		},
+		async copyLink() {
+			try {
+				await this.$copyText(this.shareLink)
+				// focus and show the tooltip
+				this.$refs.copyButton.$el.focus()
+				this.copySuccess = true
+				this.copied = true
+			} catch (error) {
+				this.copySuccess = false
+				this.copied = true
+				console.error(error)
+			} finally {
+				setTimeout(() => {
+					this.copySuccess = false
+					this.copied = false
+				}, 4000)
+			}
+		},
+		/**
+		 * Add a new share into the link shares list
+		 * and return the newly created share component
+		 *
+		 * @param {Share} share the share to add to the array
+		 * @param {Function} resolve a function to run after the share is added and its component initialized
+		 */
+		addShare(share, resolve) {
+			this.linkShares.unshift(share)
+			this.awaitForShare(share, resolve)
+		},
+		/**
+		 * Await for next tick and render after the list updated
+		 * Then resolve with the matched vue component of the
+		 * provided share object
+		 *
+		 * @param {Share} share newly created share
+		 * @param {Function} resolve a function to execute after
+		 */
+		awaitForShare(share, resolve) {
+			this.$nextTick(() => {
+				const newShare = this.$children.find(component => component.share === share)
+				if (newShare) {
+					resolve(newShare)
+				}
+			})
+		},
+
 		handleOpen() {
 			// Fix dropdown not opening when viewer is open, see https://github.com/nextcloud/viewer/pull/1319
 			emit('viewer:trapElements:changed', this.$refs.select.$el)
@@ -463,81 +641,17 @@ export default {
 				...this.shareTypeToIcon(result.value.shareType),
 			}
 		},
-
-		/**
-		 * Process the new share request
-		 *
-		 * @param {object} value the multiselect option
-		 */
-		async addShare(value) {
-			// Clear the displayed selection
-			this.value = null
-
-			if (value.lookup) {
-				await this.getSuggestions(this.query, true)
-
-				this.$nextTick(() => {
-					// open the dropdown again
-					this.$refs.select.$children[0].open = true
-				})
-				return true
-			}
-
-			// handle externalResults from OCA.Sharing.ShareSearch
-			if (value.handler) {
-				const share = await value.handler(this)
-				this.$emit('add:share', new Share(share))
-				return true
-			}
-
-			this.loading = true
-			console.debug('Adding a new share from the input for', value)
-			try {
-				let password = null
-
-				if (this.config.enforcePasswordForPublicLink
-					&& value.shareType === this.SHARE_TYPES.SHARE_TYPE_EMAIL) {
-					password = await GeneratePassword()
-				}
-
-				const path = (this.fileInfo.path + '/' + this.fileInfo.name).replace('//', '/')
-				const share = await this.createShare({
-					path,
-					shareType: value.shareType,
-					shareWith: value.shareWith,
-					password,
-					permissions: this.fileInfo.sharePermissions & OC.getCapabilities().files_sharing.default_permissions,
-					attributes: JSON.stringify(this.fileInfo.shareAttributes),
-				})
-
-				// If we had a password, we need to show it to the user as it was generated
-				if (password) {
-					share.newPassword = password
-					// Wait for the newly added share
-					const component = await new Promise(resolve => {
-						this.$emit('add:share', share, resolve)
-					})
-
-					// open the menu on the
-					// freshly created share component
-					component.open = true
-				} else {
-					// Else we just add it normally
-					this.$emit('add:share', share)
-				}
-
-				await this.getRecommendations()
-			} catch (error) {
-				this.$nextTick(() => {
-					// open the dropdown again on error
-					this.$refs.select.$children[0].open = true
-				})
-				this.query = value.shareWith
-				console.error('Error while adding new share', error)
-			} finally {
-				this.loading = false
-			}
-		},
+		async showPermissions(value) {
+			// this.$root.$emit('optionValues', value)
+			this.$store.commit('addOption', value)
+			this.$store.commit('addFromInput', true)
+			const newShare = new Share({})
+			newShare.permissions = OC.PERMISSION_READ
+			newShare.expireDate = ''
+			newShare.password = ''
+			this.$store.commit('addShare', newShare)
+			this.$store.commit('addCurrentTab', 'permissions')
+		},		
 	},
 }
 </script>

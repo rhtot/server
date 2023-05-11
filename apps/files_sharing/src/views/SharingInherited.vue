@@ -24,7 +24,7 @@
 	<ul id="sharing-inherited-shares">
 		<!-- Main collapsible entry -->
 		<SharingEntrySimple class="sharing-entry__inherited"
-			:title="mainTitle"
+		
 			:subtitle="subTitle"
 			:aria-expanded="showInheritedShares">
 			<template #avatar>
