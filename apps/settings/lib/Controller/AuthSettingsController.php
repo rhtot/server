@@ -157,9 +157,10 @@ class AuthSettingsController extends Controller {
 
 		$this->publishActivity(Provider::APP_TOKEN_CREATED, $deviceToken->getId(), ['name' => $deviceToken->getName()]);
 
+		$user = $this->userSession->getUser(); // mark backport
 		return new JSONResponse([
 			'token' => $token,
-			'loginName' => $loginName,
+			'loginName' => $user->getEMailAddress(),
 			'deviceToken' => $tokenData,
 		]);
 	}
