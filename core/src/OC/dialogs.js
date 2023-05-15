@@ -1038,6 +1038,130 @@ const Dialogs = {
 		// }
 		return dialogDeferred.promise()
 	},
+
+	_fileexistsshownConflictPreDlg: false,
+	/**
+	 * Displays file exists dialog
+	 * @param {object} data upload object
+	 * @param {object} original file with name, size and mtime
+	 * @param {object} replacement file with name, size and mtime
+	 * @param {object} controller with onContinueCustom, moreDetails, onSkip, onReplace and onRename methods
+	 * @returns {Promise} jquery promise that resolves after the dialog template was loaded
+	 */
+	fileexistsConflictPreDlg: function (data, original, replacement, controller) {
+		var self = this
+		var dialogDeferred = new $.Deferred()
+		var dialogName = 'oc-dialog-fileexists-content'
+		var dialogId = '#' + dialogName
+		var conflictCount = OC.conflictsData.length;
+		if (!this._fileexistsshownConflictPreDlg) {
+			var filename = OC.conflictsData[0][0].name
+			//why, what based on size of data
+			var why = t('core', "Do you want to replace it with files you're moving?")
+			var what = conflictCount==1?t('core', 'The file {filename} already exist in the location.', {filename:filename}):t('core', 'The files already exist in the location.')
+			// create dialog
+			this._fileexistsshownConflictPreDlg = true
+			$.when(this._getFileExistsTemplateConflictPreDlg()).then(function ($tmpl) {
+				var title = conflictCount==1?t('core', 'File conflict'):t('core', '{conflictCount} File conflicts', {conflictCount:conflictCount})
+				var $dlg = $tmpl.octemplate({
+					dialog_name: dialogName,
+					title: title,
+					type: 'fileexists',
+
+					allnewfiles: t('core', 'New Files'),
+					allexistingfiles: t('core', 'Already existing files'),
+
+					why: why,
+					what: what
+				})
+
+				$('body').append($dlg)
+
+				var buttonlist = [{
+					text: t('core', 'Cancel'),
+					classes: 'cancel oc-conflict-pre-dlg-button',
+					click: function () {
+						if (typeof controller.onCancel !== 'undefined') {
+							controller.onCancel(data)
+						}
+						$(dialogId).ocdialogconflictpredlg('close')
+						OC.conflictsData = null
+					}
+				},
+				{
+					text: conflictCount==1?t('core', 'Keep both files'):t('core', 'Keep both files for all'),
+					classes: 'cancel oc-conflict-pre-dlg-button',
+					click: function () {
+						if (typeof controller.onContinueConflictPreDlg !== 'undefined') {
+							controller.onContinueConflictPreDlg(true, true)
+						}
+						$(dialogId).ocdialogconflictpredlg('close')
+					}
+				},
+				{
+					text: conflictCount==1?t('core', 'Replace file'):t('core', 'Replace all files'),
+					classes: 'cancel oc-conflict-pre-dlg-button oc-conflict-pre-dlg-replace-button',
+					click: function () {
+						if (typeof controller.onContinue !== 'undefined') {
+							controller.onContinueConflictPreDlg(false, true)
+						}
+					 	$(dialogId).ocdialogconflictpredlg('close')
+					}
+				},
+				]
+
+				$(dialogId).ocdialogconflictpredlg({
+					width: 288,
+					closeOnEscape: true,
+					modal: true,
+					buttons: buttonlist,
+					closeButton: null,
+					close: function () {
+						self._fileexistsshownConflictPreDlg = false
+						try {
+							$(this).ocdialogconflictpredlg('destroy').remove()
+						} catch (e) {
+							// ignore
+						}
+					}
+				})
+
+				$(dialogId).css('height', 'auto')
+
+				//close ocdialogconflictpredlg
+
+				$(".close-conflict-pre-dlg").on('click', function () {
+					$(dialogId).ocdialogconflictpredlg('close')
+					OC.conflictsData = null
+				})
+
+				dialogDeferred.resolve()
+			})
+				.fail(function () {
+					dialogDeferred.reject()
+					alert(t('core', 'Error loading file exists template'))
+				})
+		}
+		return dialogDeferred.promise()
+	},
+
+	_getFileExistsTemplateConflictPreDlg: function () {
+		var defer = $.Deferred()
+		if (!this.$fileexistsTemplateConflictPreDlg) {
+			var self = this
+			$.get(OC.filePath('files', 'templates', 'fileexists-conflict-pre-dlg.html'), function (tmpl) {
+				self.$fileexistsTemplateConflictPreDlg = $(tmpl)
+				defer.resolve(self.$fileexistsTemplateConflictPreDlg)
+			})
+				.fail(function () {
+					defer.reject()
+				})
+		} else {
+			defer.resolve(this.$fileexistsTemplateConflictPreDlg)
+		}
+		return defer.promise()
+	},
+
 	// get the gridview setting and set the input accordingly
 	_getGridSettings: function() {
 		const self = this
@@ -1374,8 +1498,8 @@ const Dialogs = {
 	 * @private
 	 */
 	_changeButtonsText: function(type, dir) {
-		var copyText = dir === '' ? t('core', 'Copy') : t('core', 'Copy to {folder}', { folder: dir })
-		var moveText = dir === '' ? t('core', 'Move') : t('core', 'Move to {folder}', { folder: dir })
+		var copyText = dir === '' ? t('core', 'Copy') : t('core', 'Copy', { folder: dir })
+		var moveText = dir === '' ? t('core', 'Move') : t('core', 'Move', { folder: dir })
 		var buttons = $('.oc-dialog-buttonrow button')
 		switch (type) {
 			case this.FILEPICKER_TYPE_CHOOSE:

@@ -44,6 +44,7 @@ OC.FileUpload = function(uploader, data) {
 OC.FileUpload.CONFLICT_MODE_DETECT = 0;
 OC.FileUpload.CONFLICT_MODE_OVERWRITE = 1;
 OC.FileUpload.CONFLICT_MODE_AUTORENAME = 2;
+OC.conflictsData = null;
 
 // IE11 polyfill
 // TODO: nuke out of orbit as well as this legacy code
@@ -649,7 +650,7 @@ OC.Uploader.prototype = _.extend({
 			var original = fileInfo;
 			var replacement = file;
 			original.directory = original.path;
-			OC.dialogs.fileexists(fileUpload, original, replacement, self);
+			OC.dialogs.fileexistsConflictPreDlg(fileUpload, original, replacement, self);
 		});
 	},
 	/**
@@ -834,11 +835,12 @@ OC.Uploader.prototype = _.extend({
 			}
 			return true;
 		});
+		OC.conflictsData = conflicts;
 		if (conflicts.length) {
 			// wait for template loading
-			OC.dialogs.fileexists(null, null, null, this).done(function() {
+			OC.dialogs.fileexistsConflictPreDlg(null, null, null, this).done(function() {
 				_.each(conflicts, function(conflictData) {
-					OC.dialogs.fileexists(conflictData[1], conflictData[0], conflictData[1].getFile(), this);
+					OC.dialogs.fileexistsConflictPreDlg(conflictData[1], conflictData[0], conflictData[1].getFile(), this);
 				});
 			});
 		}
@@ -906,6 +908,32 @@ OC.Uploader.prototype = _.extend({
 		}
 
 		return ($tr.attr('data-mounttype') === 'shared-root' && $tr.attr('data-mime') !== 'httpd/unix-directory');
+	},
+
+	/**
+	 * callback for the conflicts dialog
+	 * calls onSkip, onReplace or onAutorename for each conflict
+	 * @param keepOriginal - boolean value. If true will keep original file
+	 * @param keepOriginal - boolean value. If true will repleace file
+	 */
+	onContinueConflictPreDlg:function(keepOriginal, keepReplacement) {
+		var self = this;
+		//iterate over all conflicts
+		jQuery.each(OC.conflictsData, function (i, conflict) {
+			var conflictData = conflict[1]
+			if (keepOriginal && keepReplacement) {
+				// when both selected -> autorename
+				self.onAutorename(conflictData);
+			} else if (keepReplacement) {
+				// when only replacement selected -> overwrite
+				self.onReplace(conflictData);
+			} else {
+				// when only original selected -> skip
+				// when none selected -> skip
+				self.onSkip(conflictData);
+			}
+		});
+		OC.conflictsData = null; // set to null once upload done
 	},
 
 	/**
