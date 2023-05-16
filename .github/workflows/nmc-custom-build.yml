@@ -1,0 +1,172 @@
+name: MagentaCLOUD custom build strategy
+
+# Test call: act --container-architecture linux/amd64 --secret-file ../secrets.env --env-file ../nmc-master-build.env -j build-custom
+
+# we already try to build a custom release as soon as people
+# created a customisation PR
+on:
+  workflow_dispatch:
+
+env:
+  TARGET_TRUNK: "master"
+  TARGET_STABLE: "nmcstable/25.0.6"
+  CUSTOM_REPO: ${{ github.repository }}
+  CUSTOM_BRANCH: ${{ github.ref }}
+  BUILD_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # BUILD_TOKEN: ${{ secrets.BUILD_TOKEN }}
+
+
+jobs:
+  build-custom:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: "Find customisation candidates"
+        uses: octokit/graphql-action@v2.x
+        id: find_customisations
+        env:
+          GITHUB_TOKEN: ${{ env.BUILD_TOKEN }}
+        with:
+          query: |
+            query findCustomisations($searchexpr: String!) {
+              search(query: $searchexpr, type: ISSUE, first: 100) {
+                edges {
+                  node {
+                    ... on PullRequest {
+                      state
+                      number
+                      title
+                      baseRefName
+                      headRefName
+                      mergeable
+                      isDraft
+                      url
+                    }
+                  }
+                }
+              }
+            }
+          searchexpr: "type:pr state:open repo:${{ env.CUSTOM_REPO }} base:${{ env.TARGET_TRUNK }} base:${{ env.TARGET_STABLE }} label:custom label:build-ready"
+          # note that the search has OR semantice for base:, but AND semantice for label: !
+          # see: https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-label
+      - id: customisations
+        run: |
+          pulls=$(echo '${{ steps.find_customisations.outputs.data }}' | jq -s '.[].search.edges | map(.node) | sort_by(.headRefName)')
+          echo ::set-output name=pulls::$pulls
+
+      - name: Picking backports
+        id: pickbackports
+        uses: actions/github-script@v6
+        env:
+          customisations: ${{ steps.customisations.outputs.pulls }}
+          target_trunk: ${{ env.TARGET_TRUNK }}
+          target_stable: ${{ env.TARGET_STABLE }}
+        with:
+          script: |
+            const customisations = JSON.parse(process.env.customisations);
+            const target_trunk   = process.env.target_trunk;
+            const target_stable  = process.env.target_stable;
+
+            function shuffleArray(array) {
+                return array.reduce((acc, current, index) => {
+                        const randomIndex = Math.floor(Math.random() * (index + 1));
+                        [acc[index], acc[randomIndex]] = [acc[randomIndex], acc[index]];
+                        return acc;
+                    }, [...array]);
+            }
+
+            function isBackportFor(port, master) {
+                if (( port.baseRefName === target_stable ) &&
+                    ( master.baseRefName === target_trunk ) && 
+                    ( port.headRefName.startsWith( master.headRefName ))) {
+                    return true;  
+                } else {
+                    return false;
+                }
+            }
+
+            if ( target_stable == target_trunk ) {
+                // only sort out backports it it is not a master build
+                // which means that the target stable branch is not the name for the trunk branch
+                core.setOutput('buildparts', JSON.stringify(shuffleArray(customisations)) );
+                core.setOutput('newerparts', JSON.stringify([]) );
+                return "";            
+            }
+
+            var buildparts = [];
+            var newerparts =[];
+
+            for (cIdx=0; cIdx < customisations.length; cIdx++) {
+                if (cIdx+1 < customisations.length) {
+                    // detect master - backport pairs
+                    if (isBackportFor( customisations[cIdx], customisations[cIdx+1] )) {
+                        buildparts.push(customisations[cIdx]);
+                        newerparts.push(customisations[cIdx+1]);
+                        cIdx++;
+                    } else if (isBackportFor( customisations[cIdx+1], customisations[cIdx] )) {
+                        buildparts.push(customisations[cIdx+1]);
+                        newerparts.push(customisations[cIdx]);
+                        cIdx++;
+                    } else {
+                        // handle as single entry
+                        buildparts.push(customisations[cIdx]);
+                    }
+                } else {
+                    // handle as last entry
+                    buildparts.push(customisations[cIdx]);
+                }
+            }
+            core.setOutput('buildparts', JSON.stringify(shuffleArray(buildparts)) );
+            core.setOutput('newerparts', JSON.stringify(shuffleArray(newerparts)) );
+            return "";            
+
+      # we exclude non-mergeable branches and exclude them from build
+      - name: Check mergeability
+        id: checkmergeable
+        uses: actions/github-script@v6
+        env:
+          buildparts: ${{ steps.pickbackports.outputs.buildparts }}
+        with:
+          script: |
+            const buildparts = JSON.parse(process.env.buildparts);
+            var   mergeableparts = [];
+            result = 0;
+
+            buildparts.forEach( (buildpart) => {
+                if ( buildpart.mergeable === 'MERGEABLE' ) {
+                   mergeableparts.push(buildpart);
+                } else {
+                   notMergeableError = `${buildpart.mergeable} #${buildpart.number}: Incomplete package, lacking '${buildpart.title}'! `
+                   core.error(notMergeableError);
+                   result++;
+                }
+            });
+            core.setOutput('mergeableparts', JSON.stringify(mergeableparts) );
+            return result;
+
+      - name: Checkout build target branch
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ env.CUSTOM_REPO }}
+          ref: ${{ env.CUSTOM_BRANCH }}
+          fetch-depth: 1
+          token: ${{ secrets.BUILD_TOKEN }}
+      - run: |
+          git rebase --onto ${{ env.TARGET_STABLE }} ${{ env.CUSTOM_BRANCH }} 
+
+        # todo do merge trials for all newerparts
+        # if one successfully merges with stable branch
+        # it is a potential candidate to replace a backport
+        # with a master patch
+
+      - name: Custom merges
+        id: custommerge
+        run:
+          echo ::debug::Merging for '${{ env.TARGET_STABLE }}' on '${{ env.CUSTOM_BRANCH }}'
+          for mergepull in $(echo '${{ steps.checkmergeable.outputs.mergeableparts }}' | jq -r '.[]')
+          do
+            head=$(echo $mergepull | jq -r '.headRefName')
+            base=$(echo $mergepull | jq -r '.baseRefName')
+            echo "::group::$head(type:$base)--->$TARGET_STABLE"
+            echo "::endgroup::"
+          done
