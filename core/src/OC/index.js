@@ -61,6 +61,7 @@ import {
 import ContactsMenu from './contactsmenu.js'
 import { currentUser, getCurrentUser } from './currentuser.js'
 import Dialogs from './dialogs.js'
+import DialogsCustomConflict from './dialogscustomconflict.js'
 import EventSource from './eventsource.js'
 import { get, set } from './get_set.js'
 import { getCapabilities } from './capabilities.js'
@@ -155,6 +156,7 @@ export default {
 	 */
 	currentUser,
 	dialogs: Dialogs,
+	dialogscustomconflict: DialogsCustomConflict,
 	EventSource,
 	/**
 	 * Returns the currently logged in user or null if there is no logged in
