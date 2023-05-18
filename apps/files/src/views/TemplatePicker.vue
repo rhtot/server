@@ -61,13 +61,14 @@
 </template>
 
 <script>
-import { normalize } from 'path'
 import { showError } from '@nextcloud/dialogs'
+import { generateOcsUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
 import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 
 import { getCurrentDirectory } from '../utils/davUtils.js'
-import { createFromTemplate, getTemplates } from '../services/Templates.js'
+import { getTemplates } from '../services/Templates.js'
 import TemplatePreview from '../components/TemplatePreview.vue'
 
 const border = 2
@@ -202,37 +203,18 @@ export default {
 			const currentDirectory = getCurrentDirectory()
 			const fileList = OCA?.Files?.App?.currentFileList
 
-			// If the file doesn't have an extension, add the default one
-			if (this.nameWithoutExt === this.name) {
-				this.logger.debug('Fixed invalid filename', { name: this.name, extension: this.provider?.extension })
-				this.name = this.name + this.provider?.extension
-			}
-
 			try {
-				const fileInfo = await createFromTemplate(
-					normalize(`${currentDirectory}/${this.name}`),
-					this.selectedTemplate?.filename,
-					this.selectedTemplate?.templateType,
-				)
-				this.logger.debug('Created new file', fileInfo)
-
-				// Fetch FileInfo and model
-				const data = await fileList?.addAndFetchFileInfo(this.name).then((status, data) => data)
-				const model = new OCA.Files.FileInfoModel(data, {
-					filesClient: fileList?.filesClient,
+				const response = await axios.post(generateOcsUrl('apps/files/api/v1/templates/create'), {
+					filePath: `${currentDirectory}/${this.name}`,
+					templatePath: this.selectedTemplate?.filename,
+					templateType: this.selectedTemplate?.templateType,
 				})
 
-				// Run default action
-				const fileAction = OCA.Files.fileActions.getDefaultFileAction(fileInfo.mime, 'file', OC.PERMISSION_ALL)
-				if (fileAction) {
-					fileAction.action(fileInfo.basename, {
-						$file: fileList?.findFileEl(this.name),
-						dir: currentDirectory,
-						fileList,
-						fileActions: fileList?.fileActions,
-						fileInfoModel: model,
-					})
-				}
+				const fileInfo = response.data.ocs.data
+				this.logger.debug('Created new file', fileInfo)
+				const options = _.extend({ scrollTo: true }, { showDetailsView: false } || {})
+				await fileList?.addAndFetchFileInfo(this.name, undefined, options)
+				fileList.rename(this.name)
 
 				this.close()
 			} catch (error) {

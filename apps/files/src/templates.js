@@ -112,7 +112,8 @@ templates.forEach((provider, index) => {
 				fileType: 'file',
 				actionLabel: provider.actionLabel,
 				actionHandler(name) {
-					TemplatePicker.open(name, provider)
+					const fileName = FileList.getUniqueName(name)
+					TemplatePicker.open(fileName, provider)
 				},
 			})
 		},
