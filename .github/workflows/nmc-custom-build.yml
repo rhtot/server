@@ -1,18 +1,47 @@
-name: MagentaCLOUD custom build strategy
-
+###
+# SPDX-License-Identifier: MPL-2.0
+#
+# Author: Bernd rederlechner <bernd.rederlechner@t-systems.com
+#
+# Run a customisation build for the "Master/Backport" customisation strategy
+# on the current branch for the user that started the workflow.
+#
+# TO PROTECT branches from unintended destruction, the brnach needs to 
+# conform to the following conditions:
+# (1) It has to be branched from TARGET_TRUNK the same point as TARGET_STABLE
+# (2) The branch has to be empty
+# Both conditions are checked by workflow and stop execution on negative result.
+#
+# you can re-create a corresponding branch e.g. by
+# ```
+# git branch --delete <CUSTOM_BRANCH>
+# git push origin -D <CUSTOM_BRANCH>
+# git checkout -b <CUSTOM_BRANCH> <commit point or tag, e.g. v25.0.6> 
+# git push <CUSTOM_BRANCH>
+# ```
+#
+# For a pure check run, you can set the INPUT variable PUSH_RESULT to false.
+# 
+# For details about Nextcloud workflows: https://github.com/nextcloud/.github
+#
 # Test call: act --container-architecture linux/amd64 --secret-file ../secrets.env --env-file ../nmc-master-build.env -j build-custom
 
-# we already try to build a custom release as soon as people
-# created a customisation PR
+name: MagentaCLOUD custom build strategy
+
+
 on:
   workflow_dispatch:
 
 env:
   TARGET_TRUNK: "master"
   TARGET_STABLE: "nmcstable/25.0.6"
-  CUSTOM_REPO: ${{ github.repository }}
+  # PUSH_RESULT:   ${{ vars && vars.PUSH_RESULT || false }}
+  # CUSTOM_REPO:   ${{ vars && vars.CUSTOM_REPO || github.repository }}
+  # CUSTOM_BRANCH: ${{ vars && vars.CUSTOM_BRANCH || github.ref }}
+  PUSH_RESULT:   false
+  CUSTOM_REPO:   ${{ github.repository }}
   CUSTOM_BRANCH: ${{ github.ref }}
-  BUILD_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  BUILD_TOKEN:   ${{ secrets.GITHUB_TOKEN }}
   # BUILD_TOKEN: ${{ secrets.BUILD_TOKEN }}
 
 
@@ -131,7 +160,7 @@ jobs:
             const buildparts = JSON.parse(process.env.buildparts);
             var   mergeableparts = [];
             result = 0;
-
+            /*
             buildparts.forEach( (buildpart) => {
                 if ( buildpart.mergeable === 'MERGEABLE' ) {
                    mergeableparts.push(buildpart);
@@ -140,7 +169,8 @@ jobs:
                    core.error(notMergeableError);
                    result++;
                 }
-            });
+            });*/
+            mergeableparts=buildparts;
             core.setOutput('mergeableparts', JSON.stringify(mergeableparts) );
             return result;
 
@@ -149,24 +179,90 @@ jobs:
         with:
           repository: ${{ env.CUSTOM_REPO }}
           ref: ${{ env.CUSTOM_BRANCH }}
-          fetch-depth: 1
+          fetch-depth: 0
           token: ${{ secrets.BUILD_TOKEN }}
-      - run: |
-          git rebase --onto ${{ env.TARGET_STABLE }} ${{ env.CUSTOM_BRANCH }} 
 
-        # todo do merge trials for all newerparts
-        # if one successfully merges with stable branch
-        # it is a potential candidate to replace a backport
-        # with a master patch
+      #- name: Check unintended branch destruction
+      #  id: checkdestination
+      #  run: |
+      #    git checkout $TARGET_TRUNK
+      #    git checkout $TARGET_STABLE
+      #    stable_merge_base=$(git merge-base $TARGET_TRUNK $TARGET_STABLE)
+      #    custom_merge_base=$(git merge-base $stable_merge_base $CUSTOM_BRANCH)
+      #    git checkout $CUSTOM_BRANCH
+      #    echo ::debug:: "custom_merge_base"
+      #     if [ "$stable_merge_base" != "$custom_merge_base" ]; then
+      #        echo "::error:: $TARGET_STABLE and $CUSTOM_BRANCH MUST branch from same trunk commit $stable_merge_base!"
+      #        exit 1
+      #    fi
+      #    if [ "$(git log $custom_merge_base..HEAD)" ]; then
+      #        echo "::error:: $CUSTOM_BRANCH contains commits - build needs fresh,empty branch!"
+      #        exit 1
+      #    fi
 
-      - name: Custom merges
-        id: custommerge
-        run:
-          echo ::debug::Merging for '${{ env.TARGET_STABLE }}' on '${{ env.CUSTOM_BRANCH }}'
-          for mergepull in $(echo '${{ steps.checkmergeable.outputs.mergeableparts }}' | jq -r '.[]')
+      - name: Detect obsolete backport candidates
+        id: checkobsolete
+        run: |
+          result=0
+          newerparts=$(echo '${{ steps.pickbackports.outputs.newerparts }}' | jq -r '.[]')
+          for newerpart in "$newerparts"
           do
-            head=$(echo $mergepull | jq -r '.headRefName')
-            base=$(echo $mergepull | jq -r '.baseRefName')
-            echo "::group::$head(type:$base)--->$TARGET_STABLE"
+            head=$(echo "$newerpart" | jq -r '.headRefName')
+            mergeable=$(echo "$newerpart" | jq -r '.mergeable')
+            echo "::group::$head(type:master)--->$TARGET_STABLE"
+            if [ "$mergeable"="MERGEABLE" ]; then
+                git fetch origin $head
+                testmerge_result=$(git merge --no-commit --no-ff $head)
+                # --allow-unrelated-histories
+                git merge --abort
+                if [ $testmerge_result -eq 0 ]; then
+                    title=$(echo $newerpart | jq -r '.title')"
+                    prnr=$(echo $newerpart | jq -r '.number')"
+                    echo ::warning:: NEWER #$prnr: Backport used, but $head (type: master) also merges!
+                    git diff ORIG_HEAD MERGE_HEAD           
+                    result++
+                fi
+            fi
             echo "::endgroup::"
           done
+          echo ::output name=result::$result
+
+      - name: Merge customisations
+        id: custommerge
+        run: |
+          result=0
+          mergepulls=$(echo '${{ steps.checkmergeable.outputs.mergeableparts }}' | jq -r '.[]')
+          for mergepull in "$mergepulls"
+          do
+              echo ::debug::$mergepull
+              head=$(jq -r '.headRefName' <<< "$mergepull")
+              base=$(jq -r '.baseRefName' <<< "$mergepull")
+              echo "::group::$head(type:$base)--->$TARGET_STABLE"
+              git fetch origin $head
+              testmerge_result = $(git merge $head)
+              if [ "$testmerge_result" -ne 0 ]
+              then
+                  title=$(echo $mergepull | jq -r '.title')
+                  prnr=$(echo $mergepull | jq -r '.number')
+                  echo ::error:: MERGE CONFLICTS #$prnr: $head lacking '$title'
+                  git diff ORIG_HEAD MERGE_HEAD           
+                  git merge --abort
+                  result++
+              fi
+              echo "::endgroup::"
+          done
+          echo ::output name=result::$result
+
+      - name: Build summary
+        id: summary
+        run: |
+          errors = '${{ steps.checkmergeable.outputs.result }}' + '${{ steps.custommerge.outputs.result }}'  
+          warnings = '${{ steps.checkobsolete.outputs.result }}'
+          if [ errors > 0 ]; then
+              echo ::error:: ERRORS: $errors, WARNINGS: $warnings
+          elif [ warnings > 0 ]; then
+              echo ::warning:: Errors: 0, WARNINGS: $warnings
+          else
+              echo ::notice:: SUCCESS.
+          fi
+
