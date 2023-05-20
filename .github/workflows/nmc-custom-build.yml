@@ -10,6 +10,10 @@
 # Stable builds: `customisation-<github.actor>-nmc/<stable version>`
 # master builds: `customisation-<github.actor>-master`
 # For a pure check run, you can set the INPUT variable PUSH_RESULT to false.
+#
+# !!! ATTENTION !!! The build will have strange side effects and is effectively
+# unusable if started on an already used customisation branch. MAKE SURE YOU DELETE
+# THE customisation- branch BEFORE BUILD !!!
 # 
 # For details about Nextcloud workflows: https://github.com/nextcloud/.github
 #
@@ -24,14 +28,18 @@ on:
 env:
   TARGET_TRUNK: "master"
   TARGET_STABLE: "nmcstable/25.0.6"
-  # PUSH_RESULT:   ${{ vars.PUSH_RESULT || false }}
-  # CUSTOM_REPO:   ${{ vars.CUSTOM_REPO || github.repository }}
-  # CUSTOM_BRANCH: ${{ vars.CUSTOM_BRANCH || format('customisation-${0}-{1}', github.actor, env.TARGET_STABLE) }}
-  PUSH_RESULT:   true
-  CUSTOM_REPO:   ${{ github.repository }}
-  CUSTOM_BRANCH: ${{ format('customisation-{0}-{1}', 'rbe', env.TARGET_STABLE) }}
+  # FETCH_DEPTH: 1
+  FETCH_DEPTH: 0
+  PUSH_RESULT:   ${{ vars.PUSH_RESULT || true }}
+  CUSTOM_REPO:   ${{ vars.CUSTOM_REPO || github.repository }}
+  CUSTOM_BRANCH: ${{ vars.CUSTOM_BRANCH || format('customisation-${0}-{1}', github.actor, env.TARGET_STABLE) }}
+  #PUSH_RESULT:   false
+  #CUSTOM_REPO:   ${{ github.repository }}
+  #CUSTOM_BRANCH: ${{ format('customisation-{0}-{1}', 'rbe', env.TARGET_STABLE) }}
+  BUILD_USER:    ${{ github.actor }}
+  BUILD_EMAIL:   ${{ format('{0}@users.noreply.github.com', github.actor) }}
   BUILD_TOKEN:   ${{ secrets.GITHUB_TOKEN }}
-  # BUILD_TOKEN: ${{ secrets.BUILD_TOKEN }}
+  # BUILD_TOKEN: ${{ secrets.BUILD_TOKEN || secrets.GITHUB_TOKEN }}
 
 
 jobs:
@@ -146,7 +154,7 @@ jobs:
                 if ( buildpart.mergeable === 'MERGEABLE' ) {
                    mergeableparts.push(buildpart);
                 } else {
-                   notMergeableError = `${buildpart.mergeable} #${buildpart.number}: Incomplete package, lacking '${buildpart.title}'! `
+                   notMergeableError= `${buildpart.mergeable} #${buildpart.number}: Incomplete package, lacking '${buildpart.title}'!`
                    core.error(notMergeableError);
                    result++;
                 }
@@ -160,7 +168,7 @@ jobs:
         with:
           repository: ${{ env.CUSTOM_REPO }}
           ref: ${{ env.TARGET_STABLE }}
-          fetch-depth: 1
+          fetch-depth: ${{ env.FETCH_DEPTH }}
           token: ${{ secrets.BUILD_TOKEN }}
 
       # this works also with TARGET_STABLE as a branch OR tag
@@ -171,89 +179,129 @@ jobs:
           if [ "$TARGET_TRUNK" == "$TARGET_STABLE" ]; then
               echo ::notice::TRUNK build '${{ env.TARGET_STABLE }}'
               git checkout -b $CUSTOM_BRANCH $TARGET_STABLE@HEAD
+              echo ::output name=buildtype::trunk
           elif [ $(git tag --contains "$TARGET_STABLE" 2>/dev/null) ]; then
               echo ::notice::TAGGED TRUNK build for '${{ env.TARGET_STABLE }}'
               git checkout -b $CUSTOM_BRANCH $TARGET_STABLE
+              echo ::output name=buildtype::tag
           else
               echo ::notice::BACKPORT build for '${{ env.TARGET_STABLE }}'
               # git fetch origin $TARGET_STABLE
               git checkout -b $CUSTOM_BRANCH $TARGET_STABLE
+              echo ::output name=buildtype::stable
           fi
 
-      - name: Detect obsolete backport candidates
-        id: checkobsolete
-        run: |
-          git checkout $CUSTOM_BRANCH
-          result=0
-          newerparts=$(echo '${{ steps.pickbackports.outputs.newerparts }}' | jq -r '.[]')
-          for newerpart in "$newerparts"
-          do
-              merge_result=0
-              head=$(echo "$newerpart" | jq -r '.headRefName')
-              base=$(echo "$newerpart" | jq -r '.baseRefName')        
-              title=$(echo "$newerpart" | jq -r '.title')
-              prnr=$(echo "$newerpart" | jq -r '.number')
-          done
+      #- name: Detect obsolete backport candidates
+      #  id: checkobsolete
+      #  run: |
+      #    git checkout $CUSTOM_BRANCH
+      #    result=0
+      #    newerparts=$(echo '${{ steps.pickbackports.outputs.newerparts }}' | jq -r '.[]')
+      #    for newerpart in "$newerparts"
+      #    do
+      #        merge_result=0
+      #        head=$(echo "$newerpart" | jq -r '.headRefName')
+      #        base=$(echo "$newerpart" | jq -r '.baseRefName')        
+      #        title=$(echo "$newerpart" | jq -r '.title')
+      #        prnr=$(echo "$newerpart" | jq -r '.number')
+      #    done
 
       - name: Merge customisations
         id: custommerge
         run: |
+          function rebase {
+              branch=$1
+              prnr=$2
+              title=$3
+
+              git fetch origin $branch
+              until_commit=$(git merge-base $TARGET_TRUNK $branch) 
+              echo ::debug::"REBASE #$prnr $branch $until_commit"
+              merge_result=$(git rebase --onto '${{ env.CUSTOM_BRANCH }}' $branch $until_commit)
+              if [ $merge_result -eq 0 ]; then
+                  git commit -m "Rebase #$prnr $title"
+              else
+                  git diff --diff-filter=U ORIG_HEAD '${{ env.CUSTOM_BRANCH }}'@HEAD
+                  git rebase --abort
+              fi
+              return merge_result
+          }
+        
+          function merge {
+              branch=$1
+              prnr=$2
+              title=$3
+
+              echo ::debug::"MERGE #$prnr $branch"
+              git fetch origin $branch
+              merge_result=$(git merge --no-commit $branch)
+              if [ $merge_result -eq 0 ]; then
+                  git commit -m "Merge #$prnr $title"
+              else
+                  git diff --diff-filter=D ORIG_HEAD '${{ env.CUSTOM_BRANCH }}'@HEAD
+                  git merge --abort
+              fi
+              return merge_result
+          }
+
           result=0
-          build_fork_point=$(git merge-base --fork-point '${{ env.CUSTOM_BRANCH }}')
-          mergepulls=$(echo '${{ steps.checkmergeable.outputs.mergeableparts }}' | jq -r '.[]')
-          for mergepull in "$mergepulls"
-          do
+          # some settings are mandatory for commits
+          git config user.name $BUILD_USER
+          git config user.email $BUILD_EMAIL
+          # start merging/rebasing
+          buildtype='${{ steps.createcustombranch.outputs.buildtype }}'
+          echo '${{ steps.checkmergeable.outputs.mergeableparts }}' | jq -c -r '.[] | @json' | \
+          while IFS= read -r mergepull; do
               merge_result=0
               head=$(echo "$mergepull" | jq -r '.headRefName')
               base=$(echo "$mergepull" | jq -r '.baseRefName')        
               title=$(echo "$mergepull" | jq -r '.title')
               prnr=$(echo "$mergepull" | jq -r '.number')
-              echo "::group::$head(type:$base) >>> '${{ env.CUSTOM_BRANCH }}'
-              mergepull_fork_point=$(git merge-base --fork-point $head)
-              if [ "$build_fork_point"=="$mergepull_fork_point" ]; then
-                  merge_result=$(git merge --no-commit $head)
-                  if [ $merge_result -eq 0 ]; then
-                      git commit -m "Merge #$prnr $title"
-                  else
-                      git diff --diff-filter=D ORIG_HEAD '${{ env.CUSTOM_BRANCH }}'@HEAD
-                      git merge --abort
-                  fi
+              echo ::group::"$head(type:$base) >>> '${{ env.CUSTOM_BRANCH }}'"
+              echo ::debug::$mergepull
+              if [ "$buildtype" == "trunk" ]; then
+                  # only trunk customisations branched from trunk
+                  # TODO: may require rebase of customisations to current master first
+                  merge_result=merge "$head" "$prnr" "$title"
+              elif [ "$buildtype" == "tag" ]; then
+                  # only trunk customisations, but shifted to an (older branch) - rebase
+                  merge_result=rebase "$head" "$prnr" "$title"
               else
-                  # take only commits on customisation branch and apply them on CUSTOM_BRANCH
-                  until_commit=$(git merge-base $base $head) 
-                  merge_result=$(git rebase --onto '${{ env.CUSTOM_BRANCH }}' $head $until_commit)
-                  if [ $merge_result -eq 0 ]; then
-                      git commit -m "Rebase #$prnr $title"
+                  # same behavior used for buildtypes tags and stable
+                  # stable implements backport picking
+                  if [ "$base" == "$TARGET_STABLE" ]; then
+                      # backports are rooted at the same point as the customisation branch - merge
+                      merge_result=merge "$head" "$prnr" "$title"
                   else
-                      git diff --diff-filter=U ORIG_HEAD '${{ env.CUSTOM_BRANCH }}'@HEAD
-                      git rebase --abort
+                      # trunk customisations must be rebased
+                      rebase "$head" "$prnr" "$title"
                   fi
               fi
-              if [ $merge_result -eq 0 ]; then
-                  echo ::warning:: NEWER #$prnr: Backport picked, but $head(type: master) also applicable!
+              if [ $merge_result -ne 0 ]; then
+                  echo ::error::"FAILED CUSTOMISATION #$prnr $head(type: $base): $title!"
                   result++
               fi
-              echo "::endgroup::"
+              echo ::endgroup::
           done
           echo ::output name=result::$result
   
 ### Generation of additional artefacts (css, webpacks, start here)
 #   See also `command-compile.yml`
 
-      - name: Read package.json node and npm engines version
+      - name: Detect working node and npm engines version
         uses: skjnldsv/read-package-engines-version-actions@v1
         id: package-engines-versions
         with:
           fallbackNode: '^12'
           fallbackNpm: '^6'
 
-      - name: Set up node ${{ steps.package-engines-versions.outputs.nodeVersion }}
+      - name: Setup node ${{ steps.package-engines-versions.outputs.nodeVersion }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ steps.package-engines-versions.outputs.nodeVersion }}
           cache: npm
 
-      - name: Set up npm ${{ steps.package-engines-versions.outputs.npmVersion }}
+      - name: Setup npm ${{ steps.package-engines-versions.outputs.npmVersion }}
         run: npm i -g npm@"${{ steps.package-engines-versions.outputs.npmVersion }}"
 
       - name: Install dependencies & build
@@ -264,8 +312,17 @@ jobs:
       - name: Build css
         run: npm run --if-present sass
 
-      - name: Build icons css
+      - name: Build css icons
         run: npm run --if-present sass:icons
+
+### PUSH result ()
+# incomplete or not... always check workflow result report!
+      - name: Push '${{ env.CUSTOM_BRANCH }}'
+        id: pushcustomisation
+        run: |
+          if [ $PUSH_RESULT == true ]; then
+              git push origin $CUSTOM_BRANCH
+          fi
 
 ### Final statistics
 #
@@ -273,11 +330,11 @@ jobs:
         id: summary
         if: ${{ always() }}
         run: |
-          errors = $(( '${{ steps.checkmergeable.outputs.result }}' + '${{ steps.custommerge.outputs.result }}' ))  
-          warnings = $(( '${{ steps.checkobsolete.outputs.result }}' ))
-          if [ errors > 0 ]; then
-              echo ::error::ERRORS: $errors, WARNINGS: $warnings
-          elif [ warnings > 0 ]; then
-              echo ::warning::Errors: 0, WARNINGS: $warnings
+          errors = $((${{ steps.checkmergeable.outputs.result || 0 }} + ${{ steps.custommerge.outputs.result || 0 }}))
+          warnings = $((${{ steps.checkobsolete.outputs.result  || 0 }}))
+          if [ $errors > 0 ]; then
+              echo ::error::Customisation ERRORS: $errors, WARNINGS: $warnings
+          elif [ $warnings > 0 ]; then
+              echo ::warning::Customisation Errors: 0, WARNINGS: $warnings
           fi
 
