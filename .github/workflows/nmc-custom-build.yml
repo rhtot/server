@@ -28,14 +28,13 @@ on:
 env:
   TARGET_TRUNK: "master"
   TARGET_STABLE: "nmcstable/25.0.6"
-  # FETCH_DEPTH: 1
   FETCH_DEPTH: 0
-  PUSH_RESULT:   ${{ vars.PUSH_RESULT || true }}
-  CUSTOM_REPO:   ${{ vars.CUSTOM_REPO || github.repository }}
-  CUSTOM_BRANCH: ${{ vars.CUSTOM_BRANCH || format('customisation-${0}-{1}', github.actor, env.TARGET_STABLE) }}
-  #PUSH_RESULT:   false
-  #CUSTOM_REPO:   ${{ github.repository }}
-  #CUSTOM_BRANCH: ${{ format('customisation-{0}-{1}', 'rbe', env.TARGET_STABLE) }}
+  # PUSH_RESULT:   ${{ vars.PUSH_RESULT || true }}
+  # CUSTOM_REPO:   ${{ vars.CUSTOM_REPO || github.repository }}
+  CUSTOM_REPO:   ${{ github.repository }}
+  # CUSTOM_BRANCH: ${{ vars.CUSTOM_BRANCH || format('customisation-${0}-{1}', github.actor, env.TARGET_STABLE) }}
+  CUSTOM_BRANCH: ${{ format('customisation-${0}-{1}', github.actor, env.TARGET_STABLE) }}
+  PUSH_RESULT:   false
   BUILD_USER:    ${{ github.actor }}
   BUILD_EMAIL:   ${{ format('{0}@users.noreply.github.com', github.actor) }}
   BUILD_TOKEN:   ${{ secrets.GITHUB_TOKEN }}
@@ -149,7 +148,6 @@ jobs:
             const buildparts = JSON.parse(process.env.buildparts);
             var   mergeableparts = [];
             result = 0;
-            /* TODO: uncomment for full functionality (skip unmergeables) 
             buildparts.forEach( (buildpart) => {
                 if ( buildpart.mergeable === 'MERGEABLE' ) {
                    mergeableparts.push(buildpart);
@@ -158,8 +156,7 @@ jobs:
                    core.error(notMergeableError);
                    result++;
                 }
-            });*/
-            mergeableparts=buildparts; // TODO: comment this out for full function
+            });
             core.setOutput('mergeableparts', JSON.stringify(mergeableparts) );
             return result;
 
@@ -180,10 +177,10 @@ jobs:
               echo ::notice::TRUNK build '${{ env.TARGET_STABLE }}'
               git checkout -b $CUSTOM_BRANCH $TARGET_STABLE@HEAD
               echo ::output name=buildtype::trunk
-          elif [ $(git tag --contains "$TARGET_STABLE" 2>/dev/null) ]; then
-              echo ::notice::TAGGED TRUNK build for '${{ env.TARGET_STABLE }}'
-              git checkout -b $CUSTOM_BRANCH $TARGET_STABLE
-              echo ::output name=buildtype::tag
+          #elif [ $(git tag --contains "$TARGET_STABLE" 2>/dev/null) ]; then
+          #    echo ::notice::TAGGED TRUNK build for '${{ env.TARGET_STABLE }}'
+          #    git checkout -b $CUSTOM_BRANCH $TARGET_STABLE
+          #    echo ::output name=buildtype::tag
           else
               echo ::notice::BACKPORT build for '${{ env.TARGET_STABLE }}'
               # git fetch origin $TARGET_STABLE
@@ -214,17 +211,20 @@ jobs:
               prnr=$2
               title=$3
 
-              git fetch origin $branch
-              until_commit=$(git merge-base $TARGET_TRUNK $branch) 
+              # git fetch origin $branch
+              git checkout $branch
+              until_commit=$(git merge-base --fork-point $branch) 
+              git checkout $CUSTOM_BRANCH
               echo ::debug::"REBASE #$prnr $branch $until_commit"
-              merge_result=$(git rebase --onto '${{ env.CUSTOM_BRANCH }}' $branch $until_commit)
-              if [ $merge_result -eq 0 ]; then
+              git rebase --onto '${{ env.CUSTOM_BRANCH }}' $branch $until_commit
+              if [ $? = 0 ]; then
                   git commit -m "Rebase #$prnr $title"
+                  return 0
               else
-                  git diff --diff-filter=U ORIG_HEAD '${{ env.CUSTOM_BRANCH }}'@HEAD
+                  git diff --diff-filter=U ORIG_HEAD '${{ env.CUSTOM_BRANCH }}'
                   git rebase --abort
+                  return 1
               fi
-              return merge_result
           }
         
           function merge {
@@ -233,15 +233,18 @@ jobs:
               title=$3
 
               echo ::debug::"MERGE #$prnr $branch"
-              git fetch origin $branch
-              merge_result=$(git merge --no-commit $branch)
-              if [ $merge_result -eq 0 ]; then
+              # git fetch origin $branch
+              git checkout $branch
+              git checkout $CUSTOM_BRANCH
+              git merge --no-commit $branch
+              if [ $? = 0 ]; then
                   git commit -m "Merge #$prnr $title"
+                  return 0
               else
                   git diff --diff-filter=D ORIG_HEAD '${{ env.CUSTOM_BRANCH }}'@HEAD
                   git merge --abort
+                  return 1
               fi
-              return merge_result
           }
 
           result=0
@@ -262,19 +265,23 @@ jobs:
               if [ "$buildtype" == "trunk" ]; then
                   # only trunk customisations branched from trunk
                   # TODO: may require rebase of customisations to current master first
-                  merge_result=merge "$head" "$prnr" "$title"
+                  merge "$head" "$prnr" "$title"
+                  merge_result=$?
               elif [ "$buildtype" == "tag" ]; then
                   # only trunk customisations, but shifted to an (older branch) - rebase
-                  merge_result=rebase "$head" "$prnr" "$title"
+                  rebase "$head" "$prnr" "$title"
+                  merge_result=$?
               else
                   # same behavior used for buildtypes tags and stable
                   # stable implements backport picking
                   if [ "$base" == "$TARGET_STABLE" ]; then
                       # backports are rooted at the same point as the customisation branch - merge
-                      merge_result=merge "$head" "$prnr" "$title"
+                      merge "$head" "$prnr" "$title"
+                      merge_result=$?
                   else
                       # trunk customisations must be rebased
                       rebase "$head" "$prnr" "$title"
+                      merge_result=$?
                   fi
               fi
               if [ $merge_result -ne 0 ]; then
@@ -330,11 +337,11 @@ jobs:
         id: summary
         if: ${{ always() }}
         run: |
-          errors = $((${{ steps.checkmergeable.outputs.result || 0 }} + ${{ steps.custommerge.outputs.result || 0 }}))
-          warnings = $((${{ steps.checkobsolete.outputs.result  || 0 }}))
+          errors=$((${{ steps.checkmergeable.outputs.result || 1 }} + ${{ steps.custommerge.outputs.result || 1 }}))
+          warnings=$((${{ steps.checkobsolete.outputs.result  || 0 }})) 
           if [ $errors > 0 ]; then
-              echo ::error::Customisation ERRORS: $errors, WARNINGS: $warnings
+              echo ::error::"Customisation ERRORS: $errors, WARNINGS: $warnings"
           elif [ $warnings > 0 ]; then
-              echo ::warning::Customisation Errors: 0, WARNINGS: $warnings
+              echo ::warning::"Customisation Errors: 0, WARNINGS: $warnings"
           fi
 
