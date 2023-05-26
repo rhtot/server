@@ -34,7 +34,7 @@ import PhoneSection from './components/PersonalInfo/PhoneSection.vue'
 import LocationSection from './components/PersonalInfo/LocationSection.vue'
 import WebsiteSection from './components/PersonalInfo/WebsiteSection.vue'
 import TwitterSection from './components/PersonalInfo/TwitterSection.vue'
-import LanguageSection from './components/PersonalInfo/LanguageSection/LanguageSection.vue'
+import LanguageSectionCustom from './components/PersonalInfo/LanguageSection/LanguageSectionCustom.vue'
 import LocaleSection from './components/PersonalInfo/LocaleSection/LocaleSection.vue'
 import ProfileSection from './components/PersonalInfo/ProfileSection/ProfileSection.vue'
 import OrganisationSection from './components/PersonalInfo/OrganisationSection.vue'
@@ -61,7 +61,7 @@ const PhoneView = Vue.extend(PhoneSection)
 const LocationView = Vue.extend(LocationSection)
 const WebsiteView = Vue.extend(WebsiteSection)
 const TwitterView = Vue.extend(TwitterSection)
-const LanguageView = Vue.extend(LanguageSection)
+const LanguageView = Vue.extend(LanguageSectionCustom)
 const LocaleView = Vue.extend(LocaleSection)
 
 new AvatarView().$mount('#vue-avatar-section')
