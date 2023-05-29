@@ -158,6 +158,7 @@ export default {
 	 */
 	currentUser,
 	dialogs: Dialogs,
+	dialogscustomconflict: DialogsCustomConflict,
 	EventSource,
 	/**
 	 * Returns the currently logged in user or null if there is no logged in
