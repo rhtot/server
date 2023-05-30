@@ -62,6 +62,7 @@ import {
 import ContactsMenu from './contactsmenu'
 import { currentUser, getCurrentUser } from './currentuser'
 import Dialogs from './dialogs'
+import DialogsCustomConflict from './dialogscustomconflict.js'
 import EventSource from './eventsource'
 import { get, set } from './get_set'
 import { getCapabilities } from './capabilities'
