@@ -571,7 +571,7 @@ class User implements IUser {
 		}
 
 		$avatar = $this->avatarManager->getAvatar($this->uid);
-		$image = $avatar->get(-1);
+		$image = $avatar->get($size);
 		if ($image) {
 			return $image;
 		}
@@ -596,7 +596,7 @@ class User implements IUser {
 	}
 
 	private function removeProtocolFromUrl(string $url): string {
-		if (strpos($url, 'https://') === 0) {
+		if (str_starts_with($url, 'https://')) {
 			return substr($url, strlen('https://'));
 		}
 

@@ -60,7 +60,7 @@ class Converter {
 		$publish = false;
 
 		foreach ($userProperties as $property) {
-			if (empty($property->getValue())) {
+			if ($property->getName() !== IAccountManager::PROPERTY_AVATAR && empty($property->getValue())) {
 				continue;
 			}
 
@@ -89,7 +89,7 @@ class Converter {
 					$vCard->add(new Text($vCard, 'URL', $property->getValue(), ['X-NC-SCOPE' => $scope]));
 					break;
 				case IAccountManager::PROPERTY_PHONE:
-					$vCard->add(new Text($vCard, 'TEL', $property->getValue(), ['TYPE' => 'OTHER', 'X-NC-SCOPE' => $scope]));
+					$vCard->add(new Text($vCard, 'TEL', $property->getValue(), ['TYPE' => 'VOICE', 'X-NC-SCOPE' => $scope]));
 					break;
 				case IAccountManager::PROPERTY_ADDRESS:
 					$vCard->add(new Text($vCard, 'ADR', $property->getValue(), ['TYPE' => 'OTHER', 'X-NC-SCOPE' => $scope]));
@@ -151,7 +151,7 @@ class Converter {
 
 	private function getAvatarImage(IUser $user): ?IImage {
 		try {
-			return $user->getAvatarImage(-1);
+			return $user->getAvatarImage(512);
 		} catch (Exception $ex) {
 			return null;
 		}
