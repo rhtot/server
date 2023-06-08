@@ -171,7 +171,6 @@ jobs:
       # this works also with TARGET_STABLE as a branch OR tag
       - name: Prepare trunk build branch
         id: createcustombranch
-        if: 
         run: |
           if [ "$TARGET_TRUNK" == "$TARGET_STABLE" ]; then
               echo ::notice::TRUNK build '${{ env.TARGET_STABLE }}'
@@ -206,52 +205,67 @@ jobs:
       - name: Merge customisations
         id: custommerge
         run: |
-          function rebase {
+          function tmp_rebase {
               branch=$1
-              prnr=$2
-              title=$3
+              base=$2
+              prnr=$3
+              title=$4
+              copybranch=$branch-$GITHUB_RUN_ID
 
-              # git fetch origin $branch
+              git checkout $base
               git checkout $branch
-              until_commit=$(git merge-base --fork-point $branch) 
+              git branch --copy $branch $copybranch
+
+              echo ::debug::"REBASE-$base #$prnr $copybranch"
               git checkout $CUSTOM_BRANCH
-              echo ::debug::"REBASE #$prnr $branch $until_commit"
-              git rebase --onto '${{ env.CUSTOM_BRANCH }}' $branch $until_commit
-              if [ $? = 0 ]; then
-                  git commit -m "Rebase #$prnr $title"
-                  return 0
+              git rebase --merge --onto $CUSTOM_BRANCH --fork-point $base $copybranch
+              result=$?
+              if [ $result = 0 ]; then
+                  # if rebase is successful, the final merge must be able to fast-forward
+                  echo ::debug::"FF-MERGE-$base #$prnr $copybranch"
+                  git merge --ff-only --commit  -m "Rebase-FF-Merge #$prnr $title" $copybranch
+                  result=$?
               else
-                  git diff --diff-filter=U ORIG_HEAD '${{ env.CUSTOM_BRANCH }}'
+                  git diff --diff-filter=U ORIG_HEAD $CUSTOM_BRANCH
                   git rebase --abort
-                  return 1
               fi
+
+              git checkout $CUSTOM_BRANCH
+              git branch -D $copybranch
+              return $result
           }
         
           function merge {
               branch=$1
-              prnr=$2
-              title=$3
+              base=$2
+              prnr=$3
+              title=$4
 
-              echo ::debug::"MERGE #$prnr $branch"
               # git fetch origin $branch
+              git checkout $base
               git checkout $branch
               git checkout $CUSTOM_BRANCH
-              git merge --no-commit $branch
-              if [ $? = 0 ]; then
-                  git commit -m "Merge #$prnr $title"
-                  return 0
-              else
-                  git diff --diff-filter=D ORIG_HEAD '${{ env.CUSTOM_BRANCH }}'@HEAD
+
+              echo ::debug::"MERGE-$base #$prnr $branch"
+              # do test merge first
+              git merge --commit -m "Merge #$prnr $title" $branch
+              if [ $? != 0 ]; then
+                  result=$?
+                  git diff --diff-filter=U ORIG_HEAD $CUSTOM_BRANCH
                   git merge --abort
-                  return 1
+                  return $result
               fi
+              return 0
           }
 
-          result=0
           # some settings are mandatory for commits
           git config user.name $BUILD_USER
           git config user.email $BUILD_EMAIL
+
           # start merging/rebasing
+          # disable fast-fail as we always want to process all PR
+          set +e
+          result=0
           buildtype='${{ steps.createcustombranch.outputs.buildtype }}'
           echo '${{ steps.checkmergeable.outputs.mergeableparts }}' | jq -c -r '.[] | @json' | \
           while IFS= read -r mergepull; do
@@ -265,35 +279,47 @@ jobs:
               if [ "$buildtype" == "trunk" ]; then
                   # only trunk customisations branched from trunk
                   # TODO: may require rebase of customisations to current master first
-                  merge "$head" "$prnr" "$title"
+                  merge "$head" "$base" "$prnr" "$title"
                   merge_result=$?
               elif [ "$buildtype" == "tag" ]; then
                   # only trunk customisations, but shifted to an (older branch) - rebase
-                  rebase "$head" "$prnr" "$title"
+                  tmp_rebase "$head" "$base" "$prnr" "$title"
                   merge_result=$?
               else
                   # same behavior used for buildtypes tags and stable
                   # stable implements backport picking
                   if [ "$base" == "$TARGET_STABLE" ]; then
                       # backports are rooted at the same point as the customisation branch - merge
-                      merge "$head" "$prnr" "$title"
+                      merge "$head" "$base" "$prnr" "$title"
                       merge_result=$?
                   else
                       # trunk customisations must be rebased
-                      rebase "$head" "$prnr" "$title"
+                      tmp_rebase "$head" "$base" "$prnr" "$title"
                       merge_result=$?
                   fi
               fi
               if [ $merge_result -ne 0 ]; then
                   echo ::error::"FAILED CUSTOMISATION #$prnr $head(type: $base): $title!"
-                  result++
+                  (( result++ ))
               fi
               echo ::endgroup::
           done
+          set -e
           echo ::output name=result::$result
-  
+          # exit $result
+
+### PUSH result (optional)
+    - name: Push '${{ env.CUSTOM_BRANCH }}'
+      id: pushcustomisation        
+      run: |
+        if [ $PUSH_RESULT == true ]; then
+            git push origin $CUSTOM_BRANCH
+        fi
+
+        
 ### Generation of additional artefacts (css, webpacks, start here)
-#   See also `command-compile.yml`
+#   See also `command-compile.yml`. All of this will be release-packaged,
+#   but nothing should be checked in.
 
       - name: Detect working node and npm engines version
         uses: skjnldsv/read-package-engines-version-actions@v1
@@ -322,17 +348,10 @@ jobs:
       - name: Build css icons
         run: npm run --if-present sass:icons
 
-### PUSH result ()
-# incomplete or not... always check workflow result report!
-      - name: Push '${{ env.CUSTOM_BRANCH }}'
-        id: pushcustomisation
-        run: |
-          if [ $PUSH_RESULT == true ]; then
-              git push origin $CUSTOM_BRANCH
-          fi
+
 
 ### Final statistics
-#
+# incomplete or not... always check workflow result report!
       - name: Build summary
         id: summary
         if: ${{ always() }}
