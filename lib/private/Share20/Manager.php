@@ -853,7 +853,8 @@ class Manager implements IManager {
 							$share->getSharedBy(),
 							$emailAddress,
 							$share->getExpirationDate(),
-							$share->getNote()
+							$share->getNote(),
+							$user->getDisplayNameOtherUser()
 						);
 						$this->logger->debug('Sent share notification to ' . $emailAddress . ' for share with ID ' . $share->getId(), ['app' => 'share']);
 					} else {
@@ -888,7 +889,8 @@ class Manager implements IManager {
 											$initiator,
 											$shareWith,
 											\DateTime $expiration = null,
-											$note = '') {
+											$note = null,
+											$shareWithDisplayName = null) {
 		$initiatorUser = $this->userManager->get($initiator);
 		$initiatorDisplayName = ($initiatorUser instanceof IUser) ? $initiatorUser->getDisplayName() : $initiator;
 
@@ -900,6 +902,7 @@ class Manager implements IManager {
 			'initiator' => $initiatorDisplayName,
 			'expiration' => $expiration,
 			'shareWith' => $shareWith,
+			'shareWithDisplayName' => $shareWithDisplayName
 		]);
 
 		$emailTemplate->setSubject($l->t('%1$s shared »%2$s« with you', [$initiatorDisplayName, $filename]));
@@ -907,10 +910,7 @@ class Manager implements IManager {
 		$emailTemplate->addHeading($l->t('%1$s shared »%2$s« with you', [$initiatorDisplayName, $filename]), false);
 		$text = $l->t('%1$s shared »%2$s« with you.', [$initiatorDisplayName, $filename]);
 
-		if ($note !== '') {
-			$emailTemplate->addBodyText(htmlspecialchars($note), $note);
-		}
-
+		$emailTemplate->addBodyText(htmlspecialchars($note), $note);
 		$emailTemplate->addBodyText(
 			htmlspecialchars($text . ' ' . $l->t('Click the button below to open it.')),
 			$text

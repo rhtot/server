@@ -149,6 +149,31 @@ class User implements IUser {
 		return $this->displayName;
 	}
 
+    /**
+	 * get the display name for other user, if no specific display name is set it will fallback to the user id
+	 *
+	 * @return string
+	 */
+
+	 public function getDisplayNameOtherUser() {
+		$displayName = '';
+		if ($this->backend && $this->backend->implementsActions(Backend::GET_DISPLAYNAME)) {
+			// get display name and strip whitespace from the beginning and end of it
+			$backendDisplayName = $this->backend->getDisplayName($this->uid);
+			if (is_string($backendDisplayName)) {
+				$displayName = trim($backendDisplayName);
+			}
+		}
+
+		if (!empty($displayName)) {
+			$this->displayName = $displayName;
+		} else {
+			$this->displayName = $this->uid;
+		}
+		return $this->displayName;
+	}
+	
+
 	/**
 	 * set the displayname for the user
 	 *
