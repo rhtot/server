@@ -92,6 +92,8 @@ if (\OC::$server->getConfig()->getSystemValue('installed', false)) {
 	$application->add(new OC\Core\Command\Background\Job(\OC::$server->getJobList(), \OC::$server->getLogger()));
 	$application->add(new OC\Core\Command\Background\ListCommand(\OC::$server->getJobList()));
 
+	$application->add(new OC\Core\Command\Background\Worker(\OC::$server->getJobList(), \OC::$server->get(LoggerInterface::class)));
+
 	$application->add(\OC::$server->query(\OC\Core\Command\Broadcast\Test::class));
 
 	$application->add(new OC\Core\Command\Config\App\DeleteConfig(\OC::$server->getConfig()));

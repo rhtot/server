@@ -205,7 +205,7 @@ class JobList implements IJobList {
 	 * Get the next job in the list
 	 * @return ?IJob the next job to run. Beware that this object may be a singleton and may be modified by the next call to buildJob.
 	 */
-	public function getNext(bool $onlyTimeSensitive = false): ?IJob {
+	public function getNext(bool $onlyTimeSensitive = false, ?string $jobClass = null): ?IJob {
 		$query = $this->connection->getQueryBuilder();
 		$query->select('*')
 			->from('jobs')
@@ -216,6 +216,10 @@ class JobList implements IJobList {
 
 		if ($onlyTimeSensitive) {
 			$query->andWhere($query->expr()->eq('time_sensitive', $query->createNamedParameter(IJob::TIME_SENSITIVE, IQueryBuilder::PARAM_INT)));
+		}
+
+		if ($jobClass) {
+			$query->andWhere($query->expr()->eq('class', $query->createNamedParameter($jobClass)));
 		}
 
 		$update = $this->connection->getQueryBuilder();
@@ -238,7 +242,7 @@ class JobList implements IJobList {
 
 			if ($count === 0) {
 				// Background job already executed elsewhere, try again.
-				return $this->getNext($onlyTimeSensitive);
+				return $this->getNext($onlyTimeSensitive, $jobClass);
 			}
 			$job = $this->buildJob($row);
 
@@ -252,7 +256,7 @@ class JobList implements IJobList {
 				$reset->executeStatement();
 
 				// Background job from disabled app, try again.
-				return $this->getNext($onlyTimeSensitive);
+				return $this->getNext($onlyTimeSensitive, $jobClass);
 			}
 
 			return $job;
@@ -372,6 +376,24 @@ class JobList implements IJobList {
 			->set('execution_duration', $query->createNamedParameter($timeTaken, IQueryBuilder::PARAM_INT))
 			->where($query->expr()->eq('id', $query->createNamedParameter($job->getId(), IQueryBuilder::PARAM_INT)));
 		$query->executeStatement();
+	}
+
+	public function countByClass(): array {
+		$query = $this->connection->getQueryBuilder();
+		$query->select('class')
+			->selectAlias($query->func()->count('id'), 'count')
+			->from('jobs')
+			->orderBy('count')
+			->groupBy('class');
+
+		$result = $query->executeQuery();
+
+		$jobs = [];
+		while ($row = $result->fetch()) {
+			$jobs[] = $row;
+		}
+
+		return $jobs;
 	}
 
 	/**
