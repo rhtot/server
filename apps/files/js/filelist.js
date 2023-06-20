@@ -373,6 +373,8 @@
 			$(window).resize(this._onResize);
 
 			this.$el.on('show', this._onResize);
+			this.resizeFileActionMenu = _.debounce(_.bind(this.resizeFileActionMenu, this), 250);
+			$(window).resize(this.resizeFileActionMenu);
 
 			// reload files list on share accept
 			$('body').on('OCA.Notification.Action', function(eventObject) {
@@ -675,6 +677,7 @@
 		 * @param {boolean} [show=true] whether to open the sidebar if it was closed
 		 */
 		_updateDetailsView: function(fileName, show) {
+			this.resizeFileActionMenu();
 			if (!(OCA.Files && OCA.Files.Sidebar)) {
 				console.error('No sidebar available');
 				return;
@@ -1502,6 +1505,12 @@
 			this.fileMultiSelectMenu.render();
 			this.$el.find('.selectedActions .filesSelectMenu').remove();
 			this.$el.find('.selectedActions').append(this.fileMultiSelectMenu.$el);
+			this.fileMultipleSelectionMenu = new OCA.Files.FileMultipleSelectionMenu(this.multiSelectMenuItems.sort(function(a, b) {
+				return a.order - b.order
+			}));
+			this.fileMultipleSelectionMenu.render();
+			this.$el.find('.selectedActions .filesSelectionMenu').remove();
+			this.$el.find('.selectedActions').append(this.fileMultipleSelectionMenu.$el);
 		},
 
 		/**
@@ -3498,6 +3507,72 @@
 					} else {
 						this.fileMultiSelectMenu.toggleItemVisibility('copyMove', false);
 					}
+				}
+			}
+		},
+
+			/**
+		 * Show or hide file action menu based on the current selection
+		*/
+		resizeFileActionMenu: function() {
+			const appList = this.$el.find('.filesSelectionMenu ul li:not(.hidden-action)');
+			const appListWidth = 179;
+			const checkWidth = Math.ceil(this.$el.find('.column-selection').outerWidth());
+			const headerNameWidth = Math.ceil(this.$el.find('.column-name').outerWidth());
+			const actionWidth = Math.ceil(this.$el.find('#selectedActionLabel').outerWidth());
+			const allLabelWidth = Math.ceil(this.$el.find('#allLabel').not('#allLabel:hidden').outerWidth());
+			let headerWidth = Math.ceil(this.$el.find('.files-filestable thead').outerWidth());
+
+			if($('#app-sidebar-vue').length>0){
+				headerWidth = headerWidth - Math.ceil($('#app-sidebar-vue').outerWidth());
+			}
+
+			var availableWidth;
+			if(!allLabelWidth){
+				availableWidth = headerWidth - (checkWidth + headerNameWidth);
+			}
+			else{
+				availableWidth = headerWidth - (checkWidth + allLabelWidth+ headerNameWidth);
+			}
+
+			let appCount = Math.floor((availableWidth / appListWidth));
+
+			if(appCount < appList.length) {
+
+				if(!allLabelWidth){
+					availableWidth = headerWidth - (checkWidth + headerNameWidth + actionWidth);
+				}
+				else{
+					availableWidth = headerWidth - (checkWidth + allLabelWidth+ headerNameWidth + actionWidth);
+				}
+					appCount = Math.floor((availableWidth / appListWidth));
+			}
+
+			var summary = this._selectionSummary.summary;
+			if (summary.totalFiles === 0 && summary.totalDirs === 0) {
+				this.$el.find('#selectedActionLabel').css('display','none');
+			}
+			else{
+				if(appCount < appList.length) {
+					this.$el.find('#selectedActionLabel').css('display','block');
+				}
+				else if(appCount == appList.length){
+					this.$el.find('#selectedActionLabel').css('display','none');
+				}
+				else if (!isFinite(appCount))
+				{
+					this.$el.find('#selectedActionLabel').css('display','block');
+				}
+				else if(appCount > appList.length){
+					this.$el.find('#selectedActionLabel').css('display','none');
+				}
+			}
+
+			for (let k = 0; k < appList.length; k++) {
+				if (k < appCount) {
+					$(appList[k]).removeClass('hidden');
+				} else {
+					$(appList[k]).addClass('hidden');
 				}
 			}
 		},
