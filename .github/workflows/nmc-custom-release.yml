@@ -1,0 +1,38 @@
+###
+# SPDX-License-Identifier: MPL-2.0
+#
+# Author: Bernd rederlechner <bernd.rederlechner@t-systems.com
+#
+# Build generated artefacts after assembly 
+# for a server release
+#
+
+on:
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: 'Release increment'
+        required: true
+        type: number
+
+env:
+  RELEASE_TRUNK: 'master'
+  RELEASE_STABLE: ${{ env.CUSTOM_BRANCH || 'nmcstable/25.0.6' }}
+  RELEASE_BRANCH: ${{ format('customisation-{0}', env.CUSTOM_BRANCH || 'nmcstable/25.0.6' ) }}
+  RELEASE_TAG: ${{ format('{0}-{1}', env.CUSTOM_BRANCH || 'nmcstable/25.0.6' , inputs.increment) }}
+      
+
+jobs:
+  assemble-custom:
+    uses: nextmcloud/.github/workflows/nmc-custom-assembly.yml@master
+    with:
+      trunk: ${{ env.RELEASE_TRUNK }}
+      stable: ${{ env.RELEASE_STABLE }}
+      result: ${{ env.RELEASE_BRANCH }}
+    secrets: inherit
+  build-custom:
+    uses: nextmcloud/.github/workflows/nmc-custom-server-build.yml@master
+      assembly: ${{ env.RELEASE_BRANCH }}
+      tag: ${{ env.RELEASE_TAG }}
+      prerelease: false
+    secrets: inherit
