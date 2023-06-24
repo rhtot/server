@@ -24,14 +24,14 @@ env:
 
 jobs:
   assemble-custom:
-    uses: nextmcloud/.github/workflows/nmc-custom-assembly.yml@master
+    uses: nextmcloud/.github/.github/workflows/nmc-custom-assembly.yml@master
     with:
       trunk: ${{ env.RELEASE_TRUNK }}
       stable: ${{ env.RELEASE_STABLE }}
       result: ${{ env.RELEASE_BRANCH }}
     secrets: inherit
   build-custom:
-    uses: nextmcloud/.github/workflows/nmc-custom-server-build.yml@master
+    uses: nextmcloud/.github/.github/workflows/nmc-custom-server-build.yml@master
     with:
       assembly: ${{ env.RELEASE_BRANCH }}
       tag: ${{ env.RELEASE_TAG }}

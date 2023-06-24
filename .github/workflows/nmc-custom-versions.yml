@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         custombase: [ "master", "nmcstable/25.0.6" ]
-    uses: nextmcloud/.github/workflows/nmc-custom-assembly.yml@master
+    uses: nextmcloud/.github/.github/workflows/nmc-custom-assembly.yml@master
     with:
       trunk: "master"
       stable: ${{ matrix.custombase }}
