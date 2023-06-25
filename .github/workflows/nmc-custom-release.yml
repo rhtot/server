@@ -15,25 +15,18 @@ on:
         required: true
         type: number
 
-env:
-  RELEASE_TRUNK: 'master'
-  RELEASE_STABLE: ${{ vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' }}
-  RELEASE_BRANCH: ${{ format('customisation-{0}', vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' ) }}
-  RELEASE_TAG: ${{ format('{0}-{1}', vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' , inputs.increment) }}
-      
-
 jobs:
   assemble-custom:
     uses: nextmcloud/.github/.github/workflows/nmc-custom-assembly.yml@master
     with:
-      trunk: ${{ env.RELEASE_TRUNK }}
-      stable: ${{ env.RELEASE_STABLE }}
-      result: ${{ env.RELEASE_BRANCH }}
+      trunk: 'master'
+      stable: ${{ vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' }}
+      result: ${{ format('customisation-{0}', vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' ) }}
     secrets: inherit
   build-custom:
     uses: nextmcloud/.github/.github/workflows/nmc-custom-server-build.yml@master
     with:
-      assembly: ${{ env.RELEASE_BRANCH }}
-      tag: ${{ env.RELEASE_TAG }}
+      assembly: ${{ format('customisation-{0}', vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' ) }}
+      tag: ${{ format('{0}-{1}', vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' , inputs.increment) }}
       prerelease: false
     secrets: inherit
