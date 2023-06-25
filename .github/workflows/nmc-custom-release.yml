@@ -25,6 +25,7 @@ jobs:
     secrets: inherit
   build-custom:
     uses: nextmcloud/.github/.github/workflows/nmc-custom-server-build.yml@master
+    needs: assemble-custom
     with:
       assembly: ${{ format('customisation-{0}', vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' ) }}
       tag: ${{ format('{0}-{1}', vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' , inputs.increment) }}
