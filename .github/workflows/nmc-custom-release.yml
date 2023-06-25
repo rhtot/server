@@ -17,9 +17,9 @@ on:
 
 env:
   RELEASE_TRUNK: 'master'
-  RELEASE_STABLE: ${{ env.CUSTOM_BRANCH || 'nmcstable/25.0.6' }}
-  RELEASE_BRANCH: ${{ format('customisation-{0}', env.CUSTOM_BRANCH || 'nmcstable/25.0.6' ) }}
-  RELEASE_TAG: ${{ format('{0}-{1}', env.CUSTOM_BRANCH || 'nmcstable/25.0.6' , inputs.increment) }}
+  RELEASE_STABLE: ${{ vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' }}
+  RELEASE_BRANCH: ${{ format('customisation-{0}', vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' ) }}
+  RELEASE_TAG: ${{ format('{0}-{1}', vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' , inputs.increment) }}
       
 
 jobs:
