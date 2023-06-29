@@ -7,6 +7,8 @@
 # for a server release
 #
 
+name: MCLOUD custom server release
+
 on:
   workflow_dispatch:
     inputs:
@@ -27,6 +29,7 @@ jobs:
     uses: nextmcloud/.github/.github/workflows/nmc-custom-server-build.yml@master
     needs: assemble-custom
     with:
+      stable: ${{ vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' }}
       assembly: ${{ format('customisation-{0}', vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' ) }}
       tag: ${{ format('{0}-{1}', vars.CUSTOM_BRANCH || 'nmcstable/25.0.6' , inputs.increment) }}
       prerelease: false
