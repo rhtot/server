@@ -29,7 +29,7 @@ import ShareSearch from './services/ShareSearch.js'
 import ExternalLinkActions from './services/ExternalLinkActions.js'
 import ExternalShareActions from './services/ExternalShareActions.js'
 import TabSections from './services/TabSections.js'
-
+import store from './store'
 // eslint-disable-next-line n/no-missing-import, import/no-unresolved
 import ShareVariant from '@mdi/svg/svg/share-variant.svg?raw'
 
@@ -59,25 +59,31 @@ window.addEventListener('DOMContentLoaded', function() {
 			iconSvg: ShareVariant,
 
 			async mount(el, fileInfo, context) {
-				const SharingTab = (await import('./views/SharingTab.vue')).default
-				const View = Vue.extend(SharingTab)
+				//const SharingTab = (await import('./views/SharingTab.vue')).default
+				const SharingTabCustom = (await import('./../../../themes/magentacloud25/custom/apps/files_sharing/src/views/SharingTab.vue')).default
+				const View = Vue.extend(SharingTabCustom)
 
 				if (TabInstance) {
 					TabInstance.$destroy()
+					
 				}
 				TabInstance = new View({
 					// Better integration with vue parent component
 					parent: context,
+					store
 				})
 				// Only mount after we have all the info we need
 				await TabInstance.update(fileInfo)
 				TabInstance.$mount(el)
+				OCA.Files.Sidebar.setActiveTab('sharing')
 			},
 			update(fileInfo) {
 				TabInstance.update(fileInfo)
+				store.commit('addCurrentTab', 'default')
 			},
 			destroy() {
 				TabInstance.$destroy()
+				store.commit('addCurrentTab', 'default')
 				TabInstance = null
 			},
 		}))
