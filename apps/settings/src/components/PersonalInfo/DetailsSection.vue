@@ -35,7 +35,14 @@
 			<div class="details__quota">
 				<CircleSlice :size="20" />
 				<div class="details__quota-info">
-					<p class="details__quota-text" v-html="quotaText" />
+					<div class="quotatext-bg">
+						<h4 class="quotatext">
+							<strong>{{usage}}</strong> {{ t('settings', 'of') }} {{totalSpace}}                        
+						</h4>
+						<span class="space-occupied">
+							{{ t('settings', 'Memory') }}  {{usageRelative}}%  {{ t('settings', 'occupied') }}            
+						</span>
+					</div>					
 					<NcProgressBar size="medium"
 						:value="usageRelative"
 						:error="usageRelative > 80" />
@@ -86,6 +93,9 @@ export default {
 		return {
 			groups,
 			usageRelative,
+			usage, 
+			totalSpace, 
+			usageRelative,			
 		}
 	},
 }
