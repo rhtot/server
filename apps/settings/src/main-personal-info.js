@@ -72,7 +72,7 @@ new PhoneView().$mount('#vue-phone-section')
 new LocationView().$mount('#vue-location-section')
 new WebsiteView().$mount('#vue-website-section')
 new TwitterView().$mount('#vue-twitter-section')
-new LanguageView().$mount('#vue-language-section')
+// new LanguageView().$mount('#vue-language-section')
 new LocaleView().$mount('#vue-locale-section')
 
 if (profileEnabledGlobally) {
