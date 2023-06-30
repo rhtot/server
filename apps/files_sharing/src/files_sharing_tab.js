@@ -25,7 +25,7 @@ import Vue from 'vue'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 
 import SharingTab from './views/SharingTab'
-import SharingTabCustom from '../../../themes/magentacloud25/custom/apps/files_sharing/src/views/SharingTabCustom'
+import SharingTabCustom from '../../../themes/magentacloud25/apps/files_sharing/src/views/SharingTabCustom'
 import ShareSearch from './services/ShareSearch'
 import ExternalLinkActions from './services/ExternalLinkActions'
 import ExternalShareActions from './services/ExternalShareActions'
