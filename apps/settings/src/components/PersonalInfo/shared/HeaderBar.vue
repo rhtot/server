@@ -39,14 +39,14 @@
 		</template>
 
 		<template v-if="isEditable && isMultiValueSupported">
-			<NcButton type="tertiary"
+			<NcButton v-if="addEmailLength === 0" type="tertiary"
 				:disabled="!isValidSection"
 				:aria-label="t('settings', 'Add additional email')"
 				@click.stop.prevent="onAddAdditional">
 				<template #icon>
 					<Plus :size="20" />
 				</template>
-				{{ t('settings', 'Add') }}
+				{{ t('settings', 'Add alternative mail address') }}
 			</NcButton>
 		</template>
 	</component>
@@ -100,6 +100,9 @@ export default {
 		isHeading: {
 			type: Boolean,
 			default: false,
+		},
+		addEmailLength: {
+			type: Number
 		}
 	},
 

@@ -22,7 +22,9 @@
 
 <template>
 	<div>
-		<div class="email">
+		<div class="email-container">
+			<label v-if="!primary">{{ t('settings', 'Alternative mail address') }}</label>
+			<label v-if="primary">{{ t('settings', 'Mail address') }}</label>
 			<input :id="inputId"
 				ref="email"
 				type="email"
@@ -32,41 +34,32 @@
 				autocapitalize="none"
 				autocomplete="on"
 				autocorrect="off"
-				@input="onEmailChange">
+				@input="onEmailChange"
+				:disabled="isDisabled">
 
-			<div class="email__actions-container">
+			<div class="email-actions-container">
 				<transition name="fade">
 					<Check v-if="showCheckmarkIcon" :size="20" />
 					<AlertOctagon v-else-if="showErrorIcon" :size="20" />
 				</transition>
 
-				<template v-if="!primary">
-					<FederationControl :readable="propertyReadable"
-						:additional="true"
-						:additional-value="email"
-						:disabled="federationDisabled"
-						:handle-additional-scope-change="saveAdditionalEmailScope"
-						:scope.sync="localScope"
-						@update:scope="onScopeChange" />
-				</template>
-
 				<NcActions class="email__actions"
 					:aria-label="t('settings', 'Email options')"
 					:force-menu="true">
+					<NcActionButton v-if="!primary || !isNotificationEmail"
+						:aria-label="setNotificationMailLabel"
+						:close-after-click="true"
+						:disabled="setNotificationMailDisabled"
+						:icon="setIconLabel"
+						@click.stop.prevent="setNotificationMail">
+						{{ setNotificationMailLabel }}
+					</NcActionButton>
 					<NcActionButton :aria-label="deleteEmailLabel"
 						:close-after-click="true"
 						:disabled="deleteDisabled"
 						icon="icon-delete"
 						@click.stop.prevent="deleteEmail">
 						{{ deleteEmailLabel }}
-					</NcActionButton>
-					<NcActionButton v-if="!primary || !isNotificationEmail"
-						:aria-label="setNotificationMailLabel"
-						:close-after-click="true"
-						:disabled="setNotificationMailDisabled"
-						icon="icon-favorite"
-						@click.stop.prevent="setNotificationMail">
-						{{ setNotificationMailLabel }}
 					</NcActionButton>
 				</NcActions>
 			</div>
@@ -79,8 +72,8 @@
 			{{ helperText }}
 		</p>
 
-		<em v-if="isNotificationEmail">
-			{{ t('settings', 'Primary email for password reset and notifications') }}
+		<em v-if="isNotificationEmail && this.email">
+			{{ t('settings', 'This email address is currently selected') }}
 		</em>
 	</div>
 </template>
@@ -173,7 +166,7 @@ export default {
 			if (this.primary) {
 				return t('settings', 'Remove primary email')
 			}
-			return t('settings', 'Delete email')
+			return t('settings', 'Remove mail address')
 		},
 
 	  setNotificationMailDisabled() {
@@ -182,11 +175,20 @@ export default {
 
 	  setNotificationMailLabel() {
 			if (this.isNotificationEmail) {
-				return t('settings', 'Unset as primary email')
+				return t('settings', 'Deselect email address')
 			} else if (!this.primary && this.localVerificationState !== VERIFICATION_ENUM.VERIFIED) {
-				return t('settings', 'This address is not confirmed')
+				return t('settings', 'This mail address is not confirmed yet.')
 			}
-			return t('settings', 'Set as primary email')
+			return t('settings', 'Select email address')
+		},
+
+		setIconLabel() {
+			if (this.isNotificationEmail) {
+				return 'icon-select'
+			} else if (!this.primary && this.localVerificationState !== VERIFICATION_ENUM.VERIFIED) {
+				return 'icon-mail'
+			}
+			return 'icon-deselect'
 		},
 
 		federationDisabled() {
@@ -200,11 +202,18 @@ export default {
 			return `email-${this.index}`
 		},
 
+		isDisabled() {
+			if (this.primary) {
+				return true
+			}
+			return false
+		},
+
 		inputPlaceholder() {
 			if (this.primary) {
 				return t('settings', 'Your email address')
 			}
-			return t('settings', 'Additional email address {index}', { index: this.index + 1 })
+			return t('settings', 'Alternative mail address')
 		},
 
 		isNotificationEmail() {
