@@ -114,7 +114,7 @@ class NewUserMailHelper {
 		} else {
 			$link = $this->urlGenerator->getAbsoluteURL('/');
 		}
-		$displayName = $user->getDisplayNameOtherUser();
+		$displayName = $user->getDisplayName();
 		
 		$emailTemplate = $this->mailer->createEMailTemplate('settings.Welcome', [
 			'link' => $link,

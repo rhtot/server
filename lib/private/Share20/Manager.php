@@ -854,7 +854,7 @@ class Manager implements IManager {
 							$emailAddress,
 							$share->getExpirationDate(),
 							$share->getNote(),
-							$user->getDisplayNameOtherUser()
+							$user->getDisplayName()
 						);
 						$this->logger->debug('Sent share notification to ' . $emailAddress . ' for share with ID ' . $share->getId(), ['app' => 'share']);
 					} else {
