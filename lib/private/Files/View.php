@@ -64,7 +64,6 @@ use OCP\Files\ReservedWordException;
 use OCP\Files\Storage\IChunkedFileWrite;
 use OCP\Files\Storage\IStorage;
 use OCP\Files\StorageInvalidException;
-use OCP\ILogger;
 use OCP\IUser;
 use OCP\Lock\ILockingProvider;
 use OCP\Lock\LockedException;
@@ -838,14 +837,14 @@ class View {
 							} else {
 								$result = false;
 							}
-							// moving a file/folder within the same mount point
+						// moving a file/folder within the same mount point
 						} elseif ($storage1 === $storage2) {
 							if ($storage1) {
 								$result = $storage1->rename($internalPath1, $internalPath2);
 							} else {
 								$result = false;
 							}
-							// moving a file/folder between storages (from $storage1 to $storage2)
+						// moving a file/folder between storages (from $storage1 to $storage2)
 						} else {
 							$result = $storage2->moveFromStorage($storage1, $internalPath1, $internalPath2);
 						}
@@ -1064,7 +1063,6 @@ class View {
 	public function fromTmpFile($tmpFile, $path) {
 		$this->assertPathLength($path);
 		if (Filesystem::isValidPath($path)) {
-
 			// Get directory that the file is going into
 			$filePath = dirname($path);
 
@@ -1820,7 +1818,6 @@ class View {
 	 * @return boolean
 	 */
 	private function targetIsNotShared(IStorage $targetStorage, string $targetInternalPath) {
-
 		// note: cannot use the view because the target is already locked
 		$fileId = (int)$targetStorage->getCache()->getId($targetInternalPath);
 		if ($fileId === -1) {
