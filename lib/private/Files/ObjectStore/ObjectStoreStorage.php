@@ -47,7 +47,6 @@ use OCP\Files\ObjectStore\IObjectStoreMultiPartUpload;
 use OCP\Files\Storage\IChunkedFileWrite;
 use OCP\Files\Storage\IProcessingCallbackStorage;
 use OCP\Files\Storage\IStorage;
-use OCP\ICache;
 
 class ObjectStoreStorage extends \OC\Files\Storage\Common implements IChunkedFileWrite, IProcessingCallbackStorage {
 	use CopyDirectory;
@@ -100,6 +99,7 @@ class ObjectStoreStorage extends \OC\Files\Storage\Common implements IChunkedFil
 
 	public function mkdir($path) {
 		$path = $this->normalizePath($path);
+
 		if ($this->file_exists($path)) {
 			return false;
 		}
