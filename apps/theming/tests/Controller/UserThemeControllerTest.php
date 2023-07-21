@@ -26,13 +26,14 @@ use OCA\Theming\AppInfo\Application;
 use OCA\Theming\Controller\UserThemeController;
 use OCA\Theming\ITheme;
 use OCA\Theming\Service\BackgroundService;
+use OCA\Theming\Service\ThemesService;
 use OCA\Theming\Themes\DarkHighContrastTheme;
 use OCA\Theming\Themes\DarkTheme;
 use OCA\Theming\Themes\DefaultTheme;
 use OCA\Theming\Themes\DyslexiaFont;
 use OCA\Theming\Themes\HighContrastTheme;
-use OCA\Theming\Service\ThemesService;
 use OCA\Theming\Themes\LightTheme;
+use OCA\Theming\Themes\MagentaTheme;
 use OCA\Theming\ThemingDefaults;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\OCS\OCSBadRequestException;
@@ -76,6 +77,7 @@ class UserThemeControllerTest extends TestCase {
 			'default' => $this->createMock(DefaultTheme::class),
 			'light' => $this->createMock(LightTheme::class),
 			'dark' => $this->createMock(DarkTheme::class),
+			'magenta' => $this->createMock(MagentaTheme::class),
 			'light-highcontrast' => $this->createMock(HighContrastTheme::class),
 			'dark-highcontrast' => $this->createMock(DarkHighContrastTheme::class),
 			'opendyslexic' => $this->createMock(DyslexiaFont::class),
@@ -107,6 +109,7 @@ class UserThemeControllerTest extends TestCase {
 			['default'],
 			['light'],
 			['dark'],
+			['magenta'],
 			['light-highcontrast'],
 			['dark-highcontrast'],
 			['opendyslexic'],

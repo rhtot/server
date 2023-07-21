@@ -30,6 +30,7 @@ use OCA\Theming\Themes\DefaultTheme;
 use OCA\Theming\Themes\DyslexiaFont;
 use OCA\Theming\Themes\HighContrastTheme;
 use OCA\Theming\Themes\LightTheme;
+use OCA\Theming\Themes\MagentaTheme;
 use OCP\IConfig;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -46,6 +47,7 @@ class ThemesService {
 								DefaultTheme $defaultTheme,
 								LightTheme $lightTheme,
 								DarkTheme $darkTheme,
+								MagentaTheme $magentaTheme,
 								HighContrastTheme $highContrastTheme,
 								DarkHighContrastTheme $darkHighContrastTheme,
 								DyslexiaFont $dyslexiaFont) {
@@ -57,6 +59,7 @@ class ThemesService {
 			$defaultTheme->getId()			=> $defaultTheme,
 			$lightTheme->getId()			=> $lightTheme,
 			$darkTheme->getId()				=> $darkTheme,
+			$magentaTheme->getId()			=> $magentaTheme,
 			$highContrastTheme->getId()		=> $highContrastTheme,
 			$darkHighContrastTheme->getId()	=> $darkHighContrastTheme,
 			$dyslexiaFont->getId()			=> $dyslexiaFont,

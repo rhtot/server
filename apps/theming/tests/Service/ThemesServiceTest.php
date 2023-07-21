@@ -311,6 +311,16 @@ class ThemesServiceTest extends TestCase {
 				$l10n,
 				$appManager,
 			),
+			'magenta' => new MagentaTheme(
+				$util,
+				$this->themingDefaults,
+				$this->userSession,
+				$urlGenerator,
+				$imageManager,
+				$this->config,
+				$l10n,
+				$appManager,
+			),
 			'light-highcontrast' => new HighContrastTheme(
 				$util,
 				$this->themingDefaults,

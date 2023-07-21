@@ -32,6 +32,7 @@ use OCA\Theming\Themes\DarkHighContrastTheme;
 use OCA\Theming\Themes\DarkTheme;
 use OCA\Theming\Themes\DyslexiaFont;
 use OCA\Theming\Themes\HighContrastTheme;
+use OCA\Theming\Themes\MagentaTheme;
 use OCP\IConfig;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -44,6 +45,7 @@ class MigrateUserConfig implements IRepairStep {
 	protected IConfig $config;
 	protected ThemesService $themesService;
 	protected DarkTheme $darkTheme;
+	protected MagentaTheme $magentaTheme;
 	protected DarkHighContrastTheme $darkHighContrastTheme;
 	protected HighContrastTheme $highContrastTheme;
 	protected DyslexiaFont $dyslexiaFont;
@@ -55,6 +57,7 @@ class MigrateUserConfig implements IRepairStep {
 								IUserManager $userManager,
 								ThemesService $themesService,
 								DarkTheme $darkTheme,
+								MagentaTheme $magentaTheme,
 								DarkHighContrastTheme $darkHighContrastTheme,
 								HighContrastTheme $highContrastTheme,
 								DyslexiaFont $dyslexiaFont) {
@@ -63,6 +66,7 @@ class MigrateUserConfig implements IRepairStep {
 		$this->themesService = $themesService;
 
 		$this->darkTheme = $darkTheme;
+		$this->magentaTheme = $magentaTheme;
 		$this->darkHighContrastTheme = $darkHighContrastTheme;
 		$this->highContrastTheme = $highContrastTheme;
 		$this->dyslexiaFont = $dyslexiaFont;

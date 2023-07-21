@@ -37,6 +37,7 @@ use OCA\Theming\Themes\DefaultTheme;
 use OCA\Theming\Themes\DyslexiaFont;
 use OCA\Theming\Themes\HighContrastTheme;
 use OCA\Theming\Themes\LightTheme;
+use OCA\Theming\Themes\MagentaTheme;
 use OCA\Theming\ThemingDefaults;
 use OCA\Theming\Util;
 use OCA\Theming\ITheme;
@@ -89,6 +90,7 @@ class PersonalTest extends TestCase {
 				$this->formatThemeForm('default'),
 				$this->formatThemeForm('light'),
 				$this->formatThemeForm('dark'),
+				$this->formatThemeForm('magenta'),
 				$this->formatThemeForm('light-highcontrast'),
 				$this->formatThemeForm('dark-highcontrast'),
 				$this->formatThemeForm('opendyslexic'),
@@ -172,6 +174,16 @@ class PersonalTest extends TestCase {
 				$appManager,
 			),
 			'dark' => new DarkTheme(
+				$util,
+				$themingDefaults,
+				$userSession,
+				$urlGenerator,
+				$imageManager,
+				$config,
+				$l10n,
+				$appManager,
+			),
+			'magenta' => new MagentaTheme(
 				$util,
 				$themingDefaults,
 				$userSession,
