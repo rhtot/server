@@ -6,3 +6,28 @@ git submodule update --init
 
 # Codespace config
 cp .devcontainer/codespace.config.php config/codespace.config.php
+
+# VSCode debugger profile
+mkdir -p .vscode && cp .devcontainer/launch.json .vscode/launch.json
+
+# Onetime installation setup
+if [[ ! $(sudo -u ${APACHE_RUN_USER} php occ status) =~ installed:[[:space:]]*true ]]; then
+    echo "Running NC installation"
+    sudo -u ${APACHE_RUN_USER} php occ maintenance:install \
+        --verbose \
+        --database=pgsql \
+        --database-name=postgres \
+        --database-host=127.0.0.1 \
+        --database-port=5432 \
+        --database-user=postgres \
+        --database-pass=postgres \
+        --admin-user admin \
+        --admin-pass admin
+
+    # add MagentaCLOUD convenience setup
+    source .devcontainer/nmcsetup.sh
+fi
+
+
+
+sudo service apache2 restart
