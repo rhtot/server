@@ -142,6 +142,7 @@ class CustomPropertiesBackend implements BackendInterface {
 	public function __construct(
 		Tree $tree,
 		IDBConnection $connection,
+        CustomPropertiesService $customPropertiesService,
 		IUser $user
 	) {
 		$this->tree = $tree;
