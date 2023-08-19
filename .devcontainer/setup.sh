@@ -10,6 +10,11 @@ mkdir -p .vscode && cp .devcontainer/launch.json .vscode/launch.json
 # Onetime installation setup
 if [[ ! $(sudo -u ${APACHE_RUN_USER} php occ status) =~ installed:[[:space:]]*true ]]; then
     echo "Running NC installation"
+
+    # we could be faced with an externalized, empty config dir
+    touch config/CAN_INSTALL
+
+    # this produces the plain config file without any overwriting
     sudo -u ${APACHE_RUN_USER} php occ maintenance:install \
         --verbose \
         --database=pgsql \
