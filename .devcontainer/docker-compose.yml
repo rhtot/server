@@ -20,8 +20,9 @@ services:
     restart: always
     environment:
       POSTGRES_PASSWORD: postgres
+      PGDATA: /data/postgres
     volumes:
-      - ../../data:/var/lib/postgresql/data
+      - ../../data/db:/data/postgres
     network_mode: service:nextclouddev
 
   adminer:
