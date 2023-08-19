@@ -4,9 +4,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../" >/dev/null 2>&1 && pwd )"
 cd $DIR/
 git submodule update --init
 
-# Codespace config
-cp .devcontainer/codespace.config.php config/codespace.config.php
-
 # VSCode debugger profile
 mkdir -p .vscode && cp .devcontainer/launch.json .vscode/launch.json
 
@@ -23,11 +20,14 @@ if [[ ! $(sudo -u ${APACHE_RUN_USER} php occ status) =~ installed:[[:space:]]*tr
         --database-pass=postgres \
         --admin-user admin \
         --admin-pass admin
-
-    # add MagentaCLOUD convenience setup
-    source .devcontainer/nmcsetup.sh
 fi
 
+# Codespace config; do it late to avoid duplication into config.php
+# (which removed the conditional code!)
+# may consider setting 'config_is_read_only' => true,
+cp .devcontainer/codespace.config.php config/codespace.config.php
 
+# add MagentaCLOUD convenience setup
+source .devcontainer/nmcsetup.sh
 
 sudo service apache2 restart
