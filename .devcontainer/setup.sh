@@ -19,7 +19,7 @@ if [[ ! $(sudo -u ${APACHE_RUN_USER} php occ status) =~ installed:[[:space:]]*tr
         --verbose \
         --database=pgsql \
         --database-name=postgres \
-        --database-host=127.0.0.1 \
+        --database-host=db \
         --database-port=5432 \
         --database-user=postgres \
         --database-pass=postgres \
