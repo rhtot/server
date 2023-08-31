@@ -34,11 +34,21 @@ jobs:
     secrets: inherit
 
   build-custom:
-    uses: nextmcloud/.github/.github/workflows/nmc-custom-server-build.yml@master
+    runs-on: ubuntu-latest
     needs: assemble-custom
-    with:
-      stable: ${{ vars.CUSTOM_BRANCH || 'stable25' }}
-      assembly: ${{ format('customisation-{0}-{1}', vars.CUSTOM_BRANCH || 'stable25', inputs.increment ) }}
-      tag: ${{ format('{0}-{1}', vars.CUSTOM_BRANCH || 'stable25' , inputs.increment) }}
-      prerelease: false
-    secrets: inherit
+    steps:
+      - name: Generate custom build
+        uses: nextmcloud/.github/.github/workflows/nmc-custom-server-build.yml@master
+        with:
+          stable: ${{ vars.CUSTOM_BRANCH || 'stable25' }}
+          assembly: ${{ format('customisation-{0}-{1}', vars.CUSTOM_BRANCH || 'stable25', inputs.increment ) }}
+          prerelease: false
+        secrets: inherit
+      - name: Generate artifact
+        run: echo "${{ format('{0}-{1}', vars.CUSTOM_BRANCH || 'stable25' , inputs.increment) }}" > build-version-tag.txt
+        secrets: inherit
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-version-tag-artifact
+          path: build-version-tag.txt
