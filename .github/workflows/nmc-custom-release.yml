@@ -39,15 +39,6 @@ jobs:
     with:
       stable: ${{ vars.CUSTOM_BRANCH || 'stable25' }}
       assembly: ${{ format('customisation-{0}-{1}', vars.CUSTOM_BRANCH || 'stable25', inputs.increment ) }}
-      tag: ${{ format('{0}-{1}', vars.CUSTOM_BRANCH || 'stable25' , inputs.increment) }}
+      run: echo "${{ format('{0}-{1}', vars.CUSTOM_BRANCH || 'stable25' , inputs.increment) }}" > build-version-tag.txt
       prerelease: false
     secrets: inherit
-    steps:
-      - name: Generate artifact
-        run: echo "${{ format('{0}-{1}', vars.CUSTOM_BRANCH || 'stable25' , inputs.increment) }}" > build-version-tag.txt
-        secrets: inherit
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: build-version-tag-artifact
-          path: build-version-tag.txt
