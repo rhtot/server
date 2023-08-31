@@ -38,6 +38,6 @@ jobs:
     with:
       stable: ${{ vars.CUSTOM_BRANCH || 'stable25' }}
       assembly: ${{ format('customisation-{0}-{1}', vars.CUSTOM_BRANCH || 'stable25', inputs.increment ) }}
-      run : echo "${{ format('{0}-{1}', vars.CUSTOM_BRANCH || 'stable25' , inputs.increment) }}" > build-version-tag.txt
+      tag : echo "${{ format('{0}-{1}', vars.CUSTOM_BRANCH || 'stable25' , inputs.increment) }}" > build-version-tag.txt
       prerelease: false
     secrets: inherit
