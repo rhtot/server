@@ -23,4 +23,5 @@ jobs:
             --fail \
             -F token=$GITLAB_TOKEN \
             -F ref=master \
+            -F variables[PKR_VAR_NC_TAG]="true" \
             https://gitlab.devops.telekom.de/api/v4/projects/37742/trigger/pipeline
