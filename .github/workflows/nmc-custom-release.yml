@@ -41,7 +41,5 @@ jobs:
       tag: ${{ format('{0}-{1}', vars.CUSTOM_BRANCH || 'stable25' , inputs.increment) }}
       prerelease: false
     secrets: inherit
-  push-gitlab:
-    uses: nextmcloud/.github/.github/workflows/nmc-trigger-gitlab-image-build.yml@master
 
 
