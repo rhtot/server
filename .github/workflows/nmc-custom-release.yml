@@ -33,7 +33,7 @@ jobs:
       result: ${{ format('customisation-{0}-{1}', vars.CUSTOM_BRANCH || 'nmcstable/25.0.6', inputs.increment ) }}
     secrets: inherit
   build-custom:
-    uses: nextmcloud/.github/.github/workflows/nmc-custom-server-build.yml@master
+    uses: nextmcloud/.github/.github/workflows/nmc-custom-server-build.yml@nmc/2027-build-test-rtoth
     needs: assemble-custom
     with:
       stable: ${{ vars.CUSTOM_BRANCH || 'stable25' }}
