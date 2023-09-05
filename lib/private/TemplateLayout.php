@@ -43,11 +43,11 @@
 namespace OC;
 
 use bantu\IniGetWrapper\IniGetWrapper;
+use OC\AppFramework\Utility\QueryNotFoundException;
 use OC\Search\SearchQuery;
 use OC\Template\JSCombiner;
 use OC\Template\JSConfigHelper;
 use OC\Template\JSResourceLocator;
-use OC\AppFramework\Utility\QueryNotFoundException;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\Defaults;
 use OCP\IConfig;
@@ -70,7 +70,7 @@ class TemplateLayout extends \OC_Template {
 	/** @var INavigationManager */
 	private $navigationManager;
 
-    /** @var JSResourceLocator|null */
+	/** @var JSResourceLocator|null */
 	public static $jsLocator = null;
 
 	/**
@@ -379,21 +379,21 @@ class TemplateLayout extends \OC_Template {
 	public static function findJavascriptFiles($scripts) {
 		// Read the selected theme from the config file
 		$theme = \OC_Util::getTheme();
-        try {        
-            // we need the injected form coming with stable26
-            if (self::$jsLocator === null) {
-                self::$jsLocator = \OCP\Server::get(JSResourceLocator::class);
-            }    
-        } catch (QueryNotFoundException $eInject) {
-            // but keep the old version just in case theming is not available
-            self::$jsLocator = new JSResourceLocator(
-                \OC::$server->get(LoggerInterface::class),
-                $theme,
-                [ \OC::$SERVERROOT => \OC::$WEBROOT ],
-                [ \OC::$SERVERROOT => \OC::$WEBROOT ],
-                \OC::$server->query(JSCombiner::class)
-                );    
-        }
+		try {
+			// we need the injected form coming with stable26
+			if (self::$jsLocator === null) {
+				self::$jsLocator = \OCP\Server::get(JSResourceLocator::class);
+			}
+		} catch (QueryNotFoundException $eInject) {
+			// but keep the old version just in case theming is not available
+			self::$jsLocator = new JSResourceLocator(
+				\OC::$server->get(LoggerInterface::class),
+				$theme,
+				[ \OC::$SERVERROOT => \OC::$WEBROOT ],
+				[ \OC::$SERVERROOT => \OC::$WEBROOT ],
+				\OC::$server->query(JSCombiner::class)
+			);
+		}
 
 		self::$jsLocator->find($scripts);
 		return self::$jsLocator->getResources();
